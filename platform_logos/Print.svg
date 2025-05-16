@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1280" height="1024" viewBox="0 0 1280 1024" xml:space="preserve">
+<desc>Created with Fabric.js 5.3.0</desc>
+<defs>
+</defs>
+<g transform="matrix(1 0 0 1 640 512)" id="background-logo"  >
+<rect style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  x="-640" y="-512" rx="0" ry="0" width="1280" height="1024" />
+</g>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 640 406.62473376640605)" id="logo-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(0.908018397114089 0 0 0.908018397114089 0 0)"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 5 5.384999999999991)"  >
+<linearGradient id="SVGID_2_278429" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1 0 0 1 -95 -94.49499999999999)"  x1="0" y1="0" x2="0" y2="190">
+<stop offset="0%" style="stop-color:rgb(70,18,109);stop-opacity: 1"/>
+<stop offset="100%" style="stop-color:rgb(109,29,170);stop-opacity: 1"/>
+</linearGradient>
+<polygon style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: url(#SVGID_2_278429); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  points="83.94999999999999,-94.49499999999999 83.94999999999999,83.73500000000001 -95,83.73500000000001 -95,94.495 95,94.495 95,-94.49499999999999 83.94999999999999,-94.49499999999999 " />
+</g>
+		<g transform="matrix(1 0 0 1 -10.5 -10.379999999999995)"  >
+<linearGradient id="SVGID_3_278430" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1 0 0 1 -89.5 -89.5)"  x1="0" y1="0" x2="0" y2="180">
+<stop offset="0%" style="stop-color:rgb(70,18,109);stop-opacity: 1"/>
+<stop offset="100%" style="stop-color:rgb(109,29,170);stop-opacity: 1"/>
+</linearGradient>
+<polygon style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: url(#SVGID_3_278430); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  points="89.5,89.5 89.5,-68.73 89.5,-79.5 89.5,-89.5 -89.5,-89.5 -89.5,89.5 -79.5,89.5 -69.5,89.5 89.5,89.5 " />
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 639.3015533115799 667.9684661955006)" id="text-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)" id="text-logo-path-0"  >
+<path style="stroke: rgb(255,255,255); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(117,31,183); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  transform=" translate(-186.73, 14.7)" d="M 1.47 0 L 11.05 0 C 15.79 0 19.66 -3.86 19.66 -8.61 C 19.66 -12.01 17.68 -14.95 14.78 -16.34 C 15.33 -17.51 15.62 -18.82 15.62 -20.16 C 15.62 -25.2 11.55 -29.32 6.51 -29.4 L 1.47 -29.4 Z M 6.51 -5.04 L 6.51 -10.92 C 8.15 -10.96 9.7 -11.42 11.05 -12.18 C 13.36 -12.18 14.62 -10.92 14.62 -8.61 C 14.62 -6.3 13.36 -5.04 11.05 -5.04 Z M 6.51 -15.96 L 6.51 -24.36 C 9.07 -24.32 10.58 -22.76 10.58 -20.16 C 10.58 -17.56 9.07 -16 6.51 -15.96 Z M 56.03 -4.83 C 50.19 -4.83 46.16 -8.9 46.16 -14.74 C 46.16 -20.5 50.19 -24.57 56.03 -24.57 C 61.82 -24.57 65.9 -20.5 65.9 -14.74 C 65.9 -8.9 61.82 -4.83 56.03 -4.83 Z M 41.12 -14.74 C 41.12 -6.47 47.75 0.21 56.03 0.21 C 64.26 0.21 70.94 -6.47 70.94 -14.74 C 70.94 -22.93 64.26 -29.61 56.03 -29.61 C 47.75 -29.61 41.12 -22.93 41.12 -14.74 Z M 107.73 -4.83 C 101.89 -4.83 97.86 -8.9 97.86 -14.74 C 97.86 -20.5 101.89 -24.57 107.73 -24.57 C 113.53 -24.57 117.6 -20.5 117.6 -14.74 C 117.6 -8.9 113.53 -4.83 107.73 -4.83 Z M 92.82 -14.74 C 92.82 -6.47 99.46 0.21 107.73 0.21 C 115.96 0.21 122.64 -6.47 122.64 -14.74 C 122.64 -22.93 115.96 -29.61 107.73 -29.61 C 99.46 -29.61 92.82 -22.93 92.82 -14.74 Z M 150.4 0 L 150.4 -9.16 L 151.83 -11.34 L 159.18 0 L 165.23 0 L 155.95 -14.28 L 153.72 -14.28 L 163.55 -29.4 L 157.5 -29.4 L 150.4 -18.44 L 150.4 -29.4 L 145.36 -29.4 L 145.36 0 Z M 192.99 0 L 192.99 -12.18 L 202.57 -12.18 L 202.57 0 L 207.61 0 L 207.61 -29.4 L 202.57 -29.4 L 202.57 -17.22 L 192.99 -17.22 L 192.99 -29.4 L 187.95 -29.4 L 187.95 0 Z M 235.54 0 L 237.59 -7.98 L 244.57 -7.98 L 246.62 0 L 251.83 0 L 244.27 -29.4 L 237.89 -29.4 L 230.33 0 Z M 238.9 -13.02 L 241.08 -21.59 L 243.26 -13.02 Z M 276.65 0 L 283.04 0 L 290.6 -29.4 L 285.39 -29.4 L 279.85 -7.81 L 274.3 -29.4 L 269.09 -29.4 Z M 313.32 0 L 329.62 0 L 329.62 -5.04 L 318.36 -5.04 L 318.36 -12.18 L 327.52 -12.18 L 327.52 -17.22 L 318.36 -17.22 L 318.36 -24.36 L 329.62 -24.36 L 329.62 -29.4 L 313.32 -29.4 Z M 357.38 0 L 357.38 -22.3 L 366.95 -8.36 L 366.95 0 L 371.99 0 L 371.99 -29.4 L 366.95 -29.4 L 366.95 -17.26 L 358.64 -29.4 L 352.34 -29.4 L 352.34 0 Z" stroke-linecap="round" />
+</g>
+</g>
+</g>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 640.0288173076923 756.082991960796)" id="tagline-9d867198-d703-43c8-814c-cd7116791532-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)" id="tagline-9d867198-d703-43c8-814c-cd7116791532-logo-path-0"  >
+<path style="stroke: rgb(255,255,255); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(87,23,135); fill-rule: nonzero; opacity: 1;"  paint-order="stroke"  transform=" translate(-143.34, 6.699999999999999)" d="M 7.4 0 L 7.4 -12 L 12.2 -12 L 12.2 -13.4 L 1 -13.4 L 1 -12 L 5.8 -12 L 5.8 0 Z M 22.14 0 L 22.14 -6 L 30.14 -6 L 30.14 0 L 31.74 0 L 31.74 -13.4 L 30.14 -13.4 L 30.14 -7.4 L 22.14 -7.4 L 22.14 -13.4 L 20.54 -13.4 L 20.54 0 Z M 40.08 0 L 49.68 0 L 49.68 -1.4 L 41.68 -1.4 L 41.68 -6 L 48.48 -6 L 48.48 -7.4 L 41.68 -7.4 L 41.68 -12 L 49.68 -12 L 49.68 -13.4 L 40.08 -13.4 Z M 69.98 0 L 69.98 -11.12 L 77.86 0 L 79.58 0 L 79.58 -13.4 L 77.98 -13.4 L 77.98 -2.26 L 70.08 -13.4 L 68.36 -13.4 L 68.38 -13.38 L 68.38 0 Z M 87.92 0 L 97.52 0 L 97.52 -1.4 L 89.52 -1.4 L 89.52 -6 L 96.32 -6 L 96.32 -7.4 L 89.52 -7.4 L 89.52 -12 L 97.52 -12 L 97.52 -13.4 L 87.92 -13.4 Z M 107.86 0 L 111.96 -5.62 L 116.06 0 L 118.06 0 L 113.1 -6.8 L 117.96 -13.4 L 115.96 -13.4 L 111.96 -7.96 L 107.96 -13.4 L 105.96 -13.4 L 110.82 -6.8 L 105.86 0 Z M 132.8 0 L 132.8 -12 L 137.6 -12 L 137.6 -13.4 L 126.4 -13.4 L 126.4 -12 L 131.2 -12 L 131.2 0 Z M 169.1 -2.94 C 167.82 -1.02 165.66 0.22 163.24 0.22 C 160.7 0.22 158.46 -1.14 157.22 -3.26 C 156.6 -4.32 156.28 -5.46 156.28 -6.7 C 156.28 -9.18 157.58 -11.42 159.72 -12.68 C 160.78 -13.3 161.96 -13.62 163.24 -13.62 C 165.72 -13.62 167.92 -12.32 169.18 -10.3 L 167.82 -9.52 C 166.88 -11.12 165.16 -12.12 163.24 -12.12 C 161.32 -12.12 159.56 -11.08 158.6 -9.42 C 158.12 -8.6 157.88 -7.68 157.88 -6.7 C 157.88 -4.72 158.92 -2.98 160.56 -2.02 C 161.38 -1.54 162.26 -1.3 163.24 -1.3 C 165.08 -1.3 166.74 -2.24 167.72 -3.74 Z M 179.12 0 L 179.12 -6 L 187.12 -6 L 187.12 0 L 188.72 0 L 188.72 -13.4 L 187.12 -13.4 L 187.12 -7.4 L 179.12 -7.4 L 179.12 -13.4 L 177.52 -13.4 L 177.52 0 Z M 198.78 0 L 200.16 -3.3 L 206.88 -3.3 L 208.26 0 L 209.98 0 L 204.38 -13.4 L 202.66 -13.4 L 197.06 0 Z M 200.74 -4.7 L 203.52 -11.34 L 206.3 -4.7 Z M 219.92 0 L 219.92 -5.2 L 224.92 -5.2 C 227.22 -5.2 229.02 -7 229.02 -9.3 C 229.02 -11.6 227.22 -13.4 224.92 -13.4 L 218.32 -13.4 L 218.32 0 Z M 219.92 -6.6 L 219.92 -12 L 224.82 -12 C 226.44 -12 227.52 -10.92 227.52 -9.3 C 227.52 -7.68 226.44 -6.6 224.82 -6.6 Z M 243.76 0 L 243.76 -12 L 248.56 -12 L 248.56 -13.4 L 237.36 -13.4 L 237.36 -12 L 242.16 -12 L 242.16 0 Z M 256.9 0 L 266.5 0 L 266.5 -1.4 L 258.5 -1.4 L 258.5 -6 L 265.3 -6 L 265.3 -7.4 L 258.5 -7.4 L 258.5 -12 L 266.5 -12 L 266.5 -13.4 L 256.9 -13.4 Z M 276.44 0 L 276.44 -5.58 L 280.3 -5.58 L 283.8 0 L 285.68 0 L 282.16 -5.64 C 284.1 -5.96 285.54 -7.54 285.54 -9.52 C 285.54 -11.7 283.72 -13.4 281.44 -13.4 L 274.84 -13.4 L 274.84 0 Z M 276.44 -6.98 L 276.44 -12 L 281.34 -12 C 282.96 -12 284.04 -11.02 284.04 -9.52 C 284.04 -8 283.02 -7 281.44 -6.96 Z" stroke-linecap="round" />
+</g>
+</g>
+</g>
+<g transform="matrix(1.9211538461538462 0 0 1.9211538461538462 638.7627769230769 400.28661668948314)" id="tagline-892c70df-90f6-45fd-8529-3281b2ead625-logo"  >
+<g style=""  paint-order="stroke"   >
+		<g transform="matrix(1 0 0 1 0 0)" id="tagline-892c70df-90f6-45fd-8529-3281b2ead625-logo-path-0"  >
+<filter id="SVGID_278428" y="-51.05590062111801%" height="202.11180124223603%" x="-42.04828574578326%" width="184.09657149156652%" >
+	<feGaussianBlur in="SourceAlpha" stdDeviation="10"></feGaussianBlur>
+	<feOffset dx="0" dy="0" result="oBlur" ></feOffset>
+	<feFlood flood-color="rgb(0,0,0)" flood-opacity="1"/>
+	<feComposite in2="oBlur" operator="in" />
+	<feMerge>
+		<feMergeNode></feMergeNode>
+		<feMergeNode in="SourceGraphic"></feMergeNode>
+	</feMerge>
+</filter>
+<path style="stroke: rgb(255,255,255); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;filter: url(#SVGID_278428);"  paint-order="stroke"  transform=" translate(-48.575, 32.2)" d="M 3.22 0 L 24.2 0 C 34.59 0 43.06 -8.46 43.06 -18.86 C 43.06 -26.31 38.73 -32.75 32.38 -35.79 C 33.58 -38.36 34.22 -41.22 34.22 -44.16 C 34.22 -55.2 25.3 -64.22 14.26 -64.4 L 3.22 -64.4 Z M 14.26 -11.04 L 14.26 -23.92 C 17.85 -24.01 21.25 -25.02 24.2 -26.68 C 29.26 -26.68 32.02 -23.92 32.02 -18.86 C 32.02 -13.8 29.26 -11.04 24.2 -11.04 Z M 14.26 -34.96 L 14.26 -53.36 C 19.87 -53.27 23.18 -49.86 23.18 -44.16 C 23.18 -38.46 19.87 -35.05 14.26 -34.96 Z M 61.92 0 L 61.92 -26.68 L 82.89 -26.68 L 82.89 0 L 93.93 0 L 93.93 -64.4 L 82.89 -64.4 L 82.89 -37.72 L 61.92 -37.72 L 61.92 -64.4 L 50.88 -64.4 L 50.88 0 Z" stroke-linecap="round" />
+</g>
+</g>
+</g>
+</svg>
