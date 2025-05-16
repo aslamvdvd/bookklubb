@@ -17,11 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from homepage import views
+from homepage import views as homepage_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('homepage.urls')), #include homepage urls
-    path('login/', auth_views.LoginView.as_view(), name='login'),  # <-- Add this line
-    path('signup/', views.signup, name='signup'),  # <-- Add this line
+    path('', include('homepage.urls', namespace='homepage')), #include homepage urls
+    path('login/', homepage_views.auth_view, name='login'),
+    path('signup/', homepage_views.auth_view, name='signup'),
+    
 ]
+
+
+# if settings.DEBUG:
+#     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

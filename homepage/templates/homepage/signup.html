@@ -9,6 +9,7 @@
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Sign Up</button>
+        <button><a href="{% url 'homepage:index' %}" style="text-decoration: none;">Home Page</a></button>
     </form>
 </body>
 </html>
