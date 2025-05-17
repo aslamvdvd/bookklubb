@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse
 from django.conf import settings
 from datetime import datetime
 from accounts.forms import CustomUserCreationForm
+from django.urls import reverse
+from django.contrib import messages
 
 # Create your views here.
 
@@ -33,7 +35,7 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('homepage:index')
+                return redirect(reverse('dashboard:index', kwargs={'username': user.username}))
             else:
                 context['error_message'] = 'Invalid username or password.'
         else:
@@ -56,10 +58,16 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('homepage:index')
+            return redirect(reverse('dashboard:index', kwargs={'username': user.username}))
         else:
             context['form'] = form
     else:
         form = CustomUserCreationForm()
         context['form'] = form
     return render(request, 'homepage/auth.html', context)
+
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "You have successfully logged out. Please do come again.")
+    return redirect(reverse('homepage:index'))

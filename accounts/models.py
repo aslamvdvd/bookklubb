@@ -39,7 +39,13 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=150, unique=True)
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        error_messages={
+            'unique': "User with this Username already exists."
+        }
+    )
     first_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50)

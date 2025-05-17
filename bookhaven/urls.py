@@ -21,14 +21,17 @@ from homepage import views as homepage_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('homepage.urls', namespace='homepage')), #include homepage urls
     path('login/', homepage_views.login_view, name='login'),
     path('signup/', homepage_views.signup_view, name='signup'),
-    
+    path('logout/', homepage_views.logout_view, name='logout'),
+    path('<str:username>/', include('dashboard.urls')),
+    path('', include('homepage.urls', namespace='homepage')),
 ]
 
 
 # if settings.DEBUG:
+#     from django.conf import settings # Ensure settings is imported for below
+#     from django.conf.urls.static import static # Ensure static is imported for below
 #     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 #     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

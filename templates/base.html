@@ -16,10 +16,21 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
     <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
 
     {% block head_extra %}{% endblock %}
 </head>
 <body class="{% block body_class %}bg-gray-50 text-gray-800 flex flex-col min-h-screen{% endblock %}">
+
+    {% if messages %}
+    <div class="django-messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {% block body_content %}
         {% block header %}{% endblock %}
@@ -36,5 +47,6 @@
     {% endblock %}
 
     {% block scripts %}{% endblock %}
+    <script src="{% static 'js/messages.js' %}"></script>
 </body>
 </html> 
