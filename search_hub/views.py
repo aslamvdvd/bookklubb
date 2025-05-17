@@ -1,25 +1,29 @@
 from django.shortcuts import render
-from django.db.models import Q
-from django.http import JsonResponse # Import JsonResponse
+from django.db.models import Q, Count
+from django.contrib.contenttypes.models import ContentType # For filtering by content type
 from discussions.models import DiscussionGroup
 from content.models import ContentItem # To search by content_item.title
 from django.contrib.auth import get_user_model
 from .forms import DiscussionSearchForm
-import json # For parsing request body if it were POST JSON, not needed for GET
+from django.http import JsonResponse # Added JsonResponse import
 
 User = get_user_model()
 
 def search_discussions_view(request):
     """
-    Handles searching for discussion groups based on a query for the main results page.
-    Searches group name, description, creator's username/name, and content item title.
+    Handles searching and filtering for discussion groups.
     """
     form = DiscussionSearchForm(request.GET or None)
-    results = DiscussionGroup.objects.none()
+    results = DiscussionGroup.objects.all().select_related('creator', 'content_item') # Start with all, then filter
     query = None
+    applied_filters = {}
 
     if form.is_valid():
         query = form.cleaned_data.get('query')
+        is_private_filter = form.cleaned_data.get('is_private')
+        content_type_filter = form.cleaned_data.get('content_type')
+        ordering = form.cleaned_data.get('ordering', '-created_at') # Default ordering
+
         if query:
             name_desc_q = Q(name__icontains=query) | Q(description__icontains=query)
             creator_q = (
@@ -28,13 +32,54 @@ def search_discussions_view(request):
                 Q(creator__last_name__icontains=query)
             )
             content_focus_q = Q(content_item__title__icontains=query)
-            combined_q = name_desc_q | creator_q | content_focus_q
-            results = DiscussionGroup.objects.filter(combined_q).distinct().select_related('creator', 'content_item').order_by('-created_at')
-    
+            combined_search_q = name_desc_q | creator_q | content_focus_q
+            results = results.filter(combined_search_q)
+            applied_filters['query'] = query
+
+        if is_private_filter:
+            results = results.filter(is_private=(is_private_filter == 'true'))
+            applied_filters['is_private'] = is_private_filter
+        
+        if content_type_filter: # content_type_filter will be model name string e.g. 'book'
+            try:
+                # Find the ContentType object for the model name
+                # This assumes model names in CONTENT_TYPE_CHOICES are lowercase model names
+                actual_content_type_obj = ContentType.objects.get(model=content_type_filter.lower())
+                # Filter DiscussionGroup by the content_type of their related content_item
+                results = results.filter(content_item__polymorphic_ctype=actual_content_type_obj)
+                applied_filters['content_type'] = content_type_filter
+            except ContentType.DoesNotExist:
+                # Handle case where content_type_filter string doesn't match a real ContentType
+                # For instance, if CONTENT_TYPE_CHOICES generation had an issue or input was tampered
+                pass # Or add a message, or log an error
+
+        if ordering:
+            if ordering == '-members_count': # Example for a custom ordering needing annotation
+                results = results.annotate(members_count=Count('members')).order_by('-members_count', '-created_at')
+            elif ordering in ['name', '-name', 'created_at', '-created_at']:
+                results = results.order_by(ordering)
+            applied_filters['ordering'] = ordering
+        else: # Default ordering if none specified or invalid
+            results = results.order_by('-created_at')
+            applied_filters['ordering'] = '-created_at'
+        
+        results = results.distinct() # Ensure distinct results after all filtering
+
+    else: # If form is not valid (e.g., on initial page load without GET params)
+        # Apply default ordering for initial load if no specific ordering is requested
+        ordering_param = request.GET.get('ordering', '-created_at')
+        if ordering_param in ['name', '-name', 'created_at', '-created_at']:
+             results = results.order_by(ordering_param)
+        else:
+            results = results.order_by('-created_at')
+        applied_filters['ordering'] = ordering_param if ordering_param in ['name', '-name', 'created_at', '-created_at'] else '-created_at'
+        # results = DiscussionGroup.objects.none() # Or show all/popular if form is not submitted
+
     context = {
-        'form': form,
+        'form': form, # Pass the form with current GET data to repopulate fields
         'results': results,
-        'query': query,
+        'query': request.GET.get('query'), # Pass original query for display
+        'applied_filters': applied_filters, # Pass applied filters for display/state
     }
     return render(request, 'search_hub/search_results.html', context)
 

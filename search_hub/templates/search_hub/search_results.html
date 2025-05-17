@@ -7,26 +7,57 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-12">
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <h1 class="text-4xl font-bold text-center text-indigo-700 mb-8">
-            Discussion Group Search Results
+            Discussion Group Search
         </h1>
 
-        <!-- Search Form (can be reused or a simplified version) -->
         <form method="get" action="{% url 'search_hub:discussion_search_results' %}" class="mb-10 bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <input type="text" name="query" value="{{ request.GET.query|default_if_none:'' }}" 
-                       class="w-full px-4 py-3 text-gray-700 border-2 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out" 
-                       placeholder="Search by group name, creator, focus...">
-                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-r-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-150 ease-in-out">
-                    Search
-                </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <!-- Search Query -->
+                <div class="lg:col-span-2">
+                    <label for="{{ form.query.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.query.label }}</label>
+                    {{ form.query }} 
+                </div>
+                
+                <!-- Privacy Filter -->
+                <div>
+                    <label for="{{ form.is_private.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.is_private.label }}</label>
+                    {{ form.is_private }}
+                </div>
+
+                <!-- Content Type Filter -->
+                <div>
+                    <label for="{{ form.content_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.content_type.label }}</label>
+                    {{ form.content_type }}
+                </div>
+
+                <!-- Ordering -->
+                <div>
+                    <label for="{{ form.ordering.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.ordering.label }}</label>
+                    {{ form.ordering }}
+                </div>
+
+                <!-- Submit Button -->
+                <div class="lg:col-span-4 flex justify-end mt-4">
+                    <button type="submit" class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-150 ease-in-out">
+                        Apply Filters & Search
+                    </button>
+                </div>
             </div>
-            <!-- Future: Add filter options here -->
         </form>
 
-        {% if query %}
-            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Results for "<span class="text-indigo-600">{{ query }}</span>"</h2>
+        {% if applied_filters.query or results %}
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                {% if applied_filters.query %}
+                    Results for "<span class="text-indigo-600">{{ applied_filters.query }}</span>"
+                {% elif results.count > 0 %}
+                    All Discussion Groups
+                {% else %}
+                    No Discussion Groups Found
+                {% endif %}
+            </h2>
+            
             {% if results %}
                 <div class="space-y-6">
                     {% for group in results %}
@@ -45,7 +76,8 @@
                                 </p>
                                 <p>
                                     <span class="font-semibold">Focus:</span> 
-                                    <a href="#" class="text-indigo-500 hover:underline">{{ group.content_item.title }}</a> {# Placeholder link for content item #}
+                                    <a href="#" class="text-indigo-500 hover:underline">{{ group.content_item.title }}</a> 
+                                    <span class="text-gray-400">({{ group.content_item.get_concrete_model_name|capfirst }})</span>
                                 </p>
                                 <p><span class="font-semibold">Created:</span> {{ group.created_at|date:"d M Y" }}</p>
                                 <p><span class="font-semibold">Privacy:</span> {% if group.is_private %}Private{% else %}Public{% endif %}</p>
@@ -59,13 +91,12 @@
                 </div>
             {% else %}
                 <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-md shadow">
-                    <p class="text-yellow-700">No discussion groups found matching your query "<span class="font-semibold">{{ query }}</span>".</p>
-                    <p class="text-yellow-600 text-sm mt-2">Try searching with different keywords or check your spelling.</p>
+                    <p class="text-yellow-700">No discussion groups found matching your current search and filter criteria.</p>
                 </div>
             {% endif %}
         {% else %}
             <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-md shadow">
-                <p class="text-blue-700">Please enter a search term above to find discussion groups.</p>
+                <p class="text-blue-700">Use the form above to search and filter discussion groups.</p>
             </div>
         {% endif %}
     </div>
