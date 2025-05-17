@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('discussions/', include('discussions.urls', namespace='discussions')),
     path('search/', include('search_hub.urls', namespace='search_hub')),
+    path('groupchat/', include('groupchat.urls', namespace='groupchat')),
     path('<str:username>/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('', include('homepage.urls', namespace='homepage')),
 ]

@@ -18,25 +18,22 @@ def dashboard_index(request, username):
     # For now, we proceed assuming it's the user viewing their own dashboard.
 
     created_groups = DiscussionGroup.objects.filter(creator=request.user).order_by('-created_at')
-    joined_groups = request.user.discussion_group_memberships.all().order_by('-created_at')
+    
+    # Use the correct related_name: discussion_groups_joined
+    all_joined_groups = request.user.discussion_groups_joined.all().order_by('-created_at')
+    
+    # To get GroupMembership objects (with roles), you would use: request.user.discussion_group_roles.all()
+    # Then iterate through those to get the actual group: membership.group
 
-    # To avoid showing groups in both lists if the creator is also a member (which they are by default):
-    # We can get joined_groups that were not created by the user.
-    # However, a user might want to see a group they created in their "joined" list too.
-    # For now, we will keep them separate. If a group is created by user, it shows in 'created_groups'.
-    # 'joined_groups' will show all groups they are a member of (including those they created).
-    # A more refined approach might be: "My Groups (Created by Me)" and "Other Groups I'm In".
-    # Or, simply, "All My Groups", and then perhaps distinguish ownership within the list.
-
-    # Let's refine: show created groups, and then show other groups joined.
-    joined_groups_not_created_by_user = request.user.discussion_group_memberships.exclude(creator=request.user).order_by('-created_at')
-
+    # Refined logic for 'joined_groups_not_created_by_user'
+    # This fetches DiscussionGroup instances directly
+    joined_groups_not_created_by_user = request.user.discussion_groups_joined.exclude(creator=request.user).order_by('-created_at')
 
     context = {
         'dashboard_user': dashboard_user, # The user whose dashboard is being viewed
         'created_groups': created_groups,
         'joined_groups_not_created_by_user': joined_groups_not_created_by_user,
-        'all_joined_groups': joined_groups, # For potential use if a combined list is preferred
+        'all_joined_groups': all_joined_groups, # Keep this for clarity on what it contains
     }
     return render(request, 'dashboard/index.html', context)
 
@@ -69,9 +66,9 @@ def user_groups_view(request, username):
     # If strictly private, add: if request.user != display_user: return redirect('some_error_page_or_home')
 
     created_groups = DiscussionGroup.objects.filter(creator=display_user).order_by('-created_at')
-    # Get all groups the user is a member of, excluding those they created to avoid duplication if desired.
-    # If you want to list all joined groups including created ones, use: display_user.discussion_group_memberships.all()
-    joined_groups_not_created_by_user = display_user.discussion_group_memberships.exclude(creator=display_user).order_by('-created_at')
+    
+    # Use the correct related_name: discussion_groups_joined
+    joined_groups_not_created_by_user = display_user.discussion_groups_joined.exclude(creator=display_user).order_by('-created_at')
 
     context = {
         'display_user': display_user, # The user whose groups are being viewed

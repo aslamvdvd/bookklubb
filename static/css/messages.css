@@ -15,6 +15,7 @@
     opacity: 1; /* Start fully visible */
     transition: opacity 0.5s ease-in-out;
     word-wrap: break-word; /* Ensure long messages wrap */
+    display: none; /* Hide all alerts by default */
 }
 .django-messages .alert.fade-out {
     opacity: 0;
@@ -25,15 +26,12 @@
     background-color: #d1e7dd;
     border-color: #badbcc;
 }
-.django-messages .alert-error { /* Django's default tag for messages.error */
+.django-messages .alert-error, /* Django's default tag for messages.error */
+.django-messages .alert-warning { /* Django's default tag for messages.warning */
+    display: block; /* Show errors and warnings */
     color: #842029;
     background-color: #f8d7da;
     border-color: #f5c2c7;
-}
-.django-messages .alert-warning { /* Django's default tag for messages.warning */
-    color: #664d03;
-    background-color: #fff3cd;
-    border-color: #ffecb5;
 }
 .django-messages .alert-info { /* Django's default tag for messages.info */
     color: #055160;

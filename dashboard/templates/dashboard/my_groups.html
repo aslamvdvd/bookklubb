@@ -31,7 +31,7 @@
                 {% for group in created_groups %}
                     <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <h3 class="text-xl font-bold text-indigo-600 mb-2">
-                            <a href="#" class="hover:underline">{{ group.name }}</a> {# TODO: Link to group detail page #}
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="hover:underline">{{ group.name }}</a>
                         </h3>
                         {% if group.description %}
                             <p class="text-sm text-gray-600 mb-3 min-h-[40px]">{{ group.description|truncatewords_html:20 }}</p>
@@ -41,7 +41,7 @@
                         <p class="text-xs text-gray-500 mb-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
                         <p class="text-xs text-gray-500">Members: {{ group.members.count }}</p>
                         <div class="mt-4 text-right">
-                            <a href="#" class="text-sm text-indigo-500 hover:text-indigo-700 font-medium">View Group &rarr;</a> {# TODO: Link to group detail page #}
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="text-sm text-indigo-500 hover:text-indigo-700 font-medium">Open Chat &rarr;</a>
                         </div>
                     </div>
                 {% endfor %}
@@ -65,7 +65,7 @@
                 {% for group in joined_groups_not_created_by_user %}
                     <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <h3 class="text-xl font-bold text-pink-600 mb-2">
-                            <a href="#" class="hover:underline">{{ group.name }}</a> {# TODO: Link to group detail page #}
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="hover:underline">{{ group.name }}</a>
                         </h3>
                         {% if group.description %}
                             <p class="text-sm text-gray-600 mb-3 min-h-[40px]">{{ group.description|truncatewords_html:20 }}</p>
@@ -76,7 +76,7 @@
                         <p class="text-xs text-gray-500 mb-1">Created by: @{{ group.creator.username }}</p>
                         <p class="text-xs text-gray-500">Members: {{ group.members.count }}</p>
                         <div class="mt-4 text-right">
-                            <a href="#" class="text-sm text-pink-500 hover:text-pink-700 font-medium">View Group &rarr;</a> {# TODO: Link to group detail page #}
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="text-sm text-pink-500 hover:text-pink-700 font-medium">Open Chat &rarr;</a>
                         </div>
                     </div>
                 {% endfor %}

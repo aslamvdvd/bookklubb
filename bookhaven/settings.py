@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'discussions', # Discussions app
     'dashboard',   # Dashboard app
     'search_hub',  # Search Hub app
+    'groupchat',   # Group Chat app
 ]
 
 MIDDLEWARE = [
