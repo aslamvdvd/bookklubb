@@ -60,9 +60,55 @@
             <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300">
                 <h3 class="text-2xl font-bold text-pink-500 mb-4">Start a New Conversation</h3>
                 <p class="text-gray-600 mb-6">Have an idea for a new group? Bring your community together by creating one.</p>
-                <a href="#" class="inline-block bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                <a href="{% url 'discussions:create_group' %}" class="inline-block bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                     Create a Discussion Group
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- User's Groups Display -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-semibold mb-8 text-center text-gray-700">Your Discussion Groups</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Groups Created by User -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-indigo-600 mb-4">Groups You've Created</h3>
+                {% if created_groups %}
+                    <ul class="space-y-3">
+                        {% for group in created_groups %}
+                            <li class="p-3 bg-indigo-50 rounded-md hover:bg-indigo-100 transition">
+                                <a href="#" class="font-semibold text-indigo-700 hover:text-indigo-800">{{ group.name }}</a>
+                                {% if group.description %}
+                                    <p class="text-sm text-gray-600 truncate">{{ group.description|truncatewords:15 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 mt-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-600">You haven't created any groups yet. Why not <a href="{% url 'discussions:create_group' %}" class="text-indigo-600 hover:underline">start one</a>?</p>
+                {% endif %}
+            </div>
+
+            <!-- Groups Joined by User (not created by them) -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-pink-500 mb-4">Other Groups You've Joined</h3>
+                {% if joined_groups_not_created_by_user %}
+                    <ul class="space-y-3">
+                        {% for group in joined_groups_not_created_by_user %}
+                            <li class="p-3 bg-pink-50 rounded-md hover:bg-pink-100 transition">
+                                <a href="#" class="font-semibold text-pink-700 hover:text-pink-800">{{ group.name }}</a>
+                                {% if group.description %}
+                                    <p class="text-sm text-gray-600 truncate">{{ group.description|truncatewords:15 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 mt-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-600">You haven't joined any other groups yet. Explore and <a href="#" class="text-pink-600 hover:underline">find some</a>!</p>
+                {% endif %}
             </div>
         </div>
     </section>
