@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{% block title %}{{ platform_name|default:"BookHaven" }}{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Favicons -->
+    <link rel="icon" href="{% static 'favicon/favicon.ico' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-gray-50 text-gray-800 flex flex-col min-h-screen{% endblock %}">
+
+    {% block body_content %}
+        {% block header %}{% endblock %}
+        
+        <main class="flex-grow {% block main_class %}{% endblock %}">
+            {% block content %}{% endblock %}
+        </main>
+
+        {% block footer %}
+        <footer class="py-6 bg-white text-center text-gray-600 {% block footer_class %}{% endblock %}">
+            © {% now "Y" %} {{ platform_name|default:"BookHaven" }}. All rights reserved.
+        </footer>
+        {% endblock %}
+    {% endblock %}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

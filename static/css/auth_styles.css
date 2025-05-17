@@ -1,0 +1,31 @@
+.gradient-hero { background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%); }
+.gradient-card { background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%); }
+.errorlist {
+    color: red;
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 0.5em;
+}
+.password-criteria {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    font-size: 0.875rem; /* text-sm */
+}
+.password-criteria li {
+    margin-bottom: 0.25rem;
+}
+.password-criteria li.valid {
+    color: green;
+}
+.password-criteria li.invalid {
+    color: red;
+}
+.password-criteria li.valid::before {
+    content: "✓ "; /* Checkmark for valid criteria */
+    margin-right: 0.25rem;
+}
+.password-criteria li.invalid::before {
+    content: "✗ "; /* Cross for invalid criteria */
+    margin-right: 0.25rem;
+} 

@@ -22,8 +22,8 @@ from homepage import views as homepage_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('homepage.urls', namespace='homepage')), #include homepage urls
-    path('login/', homepage_views.auth_view, name='login'),
-    path('signup/', homepage_views.auth_view, name='signup'),
+    path('login/', homepage_views.login_view, name='login'),
+    path('signup/', homepage_views.signup_view, name='signup'),
     
 ]
 
