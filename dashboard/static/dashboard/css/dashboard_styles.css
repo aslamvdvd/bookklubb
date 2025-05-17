@@ -1,0 +1,17 @@
+.gradient-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.bg-gradient-purple-pink {
+    background-image: linear-gradient(to right, #8B5CF6, #EC4899);
+}
+
+ .search-icon svg {
+    transition: transform 0.3s ease-in-out;
+}
+
+.search-icon:hover svg {
+    transform: scale(1.1);
+} 
