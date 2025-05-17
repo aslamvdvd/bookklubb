@@ -24,6 +24,7 @@ urlpatterns = [
     path('login/', homepage_views.login_view, name='login'),
     path('signup/', homepage_views.signup_view, name='signup'),
     path('logout/', homepage_views.logout_view, name='logout'),
+    path('accounts/', include('accounts.urls', namespace='accounts')),
     path('discussions/', include('discussions.urls', namespace='discussions')),
     path('search/', include('search_hub.urls', namespace='search_hub')),
     path('<str:username>/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),

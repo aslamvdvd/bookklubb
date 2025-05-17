@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const openSearchModalBtn = document.getElementById('openSearchModalBtn');
+    const openSearchModalBtnHeader = document.getElementById('openSearchModalBtnHeader');
+    const openSearchModalBtnContent = document.getElementById('openSearchModalBtnContent');
     const closeSearchModalBtn = document.getElementById('closeSearchModalBtn');
     const searchModal = document.getElementById('searchModal');
     const modalSearchInput = document.getElementById('modalSearchInput');
@@ -101,7 +102,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return div.innerHTML;
     }
 
-    if (openSearchModalBtn) openSearchModalBtn.addEventListener('click', openModal);
+    if (openSearchModalBtnHeader) openSearchModalBtnHeader.addEventListener('click', openModal);
+    if (openSearchModalBtnContent) openSearchModalBtnContent.addEventListener('click', openModal);
     if (closeSearchModalBtn) closeSearchModalBtn.addEventListener('click', closeModal);
     
     document.addEventListener('keydown', function (event) {

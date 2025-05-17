@@ -6,6 +6,9 @@
     padding: 0;
     margin-bottom: 0.5em;
 }
+html.dark .errorlist {
+    color: #f87171; /* Tailwind red-400 */
+}
 .password-criteria {
     list-style-type: none;
     padding: 0;
@@ -18,8 +21,14 @@
 .password-criteria li.valid {
     color: green;
 }
+html.dark .password-criteria li.valid {
+    color: #4ade80; /* Tailwind green-400 */
+}
 .password-criteria li.invalid {
     color: red;
+}
+html.dark .password-criteria li.invalid {
+    color: #f87171; /* Tailwind red-400 */
 }
 .password-criteria li.valid::before {
     content: "✓ "; /* Checkmark for valid criteria */

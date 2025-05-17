@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="{% static 'css/auth_styles.css' %}">
 {% endblock %}
 
-{% block main_class %}flex items-center justify-center bg-gray-100{% endblock %}
+{% block main_class %}flex items-center justify-center min-h-screen py-8 px-4 bg-gray-100 dark:bg-gray-900{% endblock %}
 
 {% block content %}
-<div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">
+<div class="bg-white dark:bg-gray-800 shadow-2xl rounded-lg p-8 w-full max-w-md transition-colors duration-300">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">
         {% if form_type == 'login' %}
             Welcome Back!
         {% else %}
@@ -21,14 +21,14 @@
     </h2>
 
     {% if error_message %}
-        <p class="text-red-500 text-center mb-4">{{ error_message }}</p>
+        <p class="text-red-500 dark:text-red-400 text-center mb-4">{{ error_message }}</p>
     {% endif %}
 
     <form method="post" class="space-y-4" autocomplete="off">
         {% csrf_token %}
         
         {% if form.non_field_errors %}
-            <ul class="errorlist">
+            <ul class="errorlist text-red-500 dark:text-red-400 text-sm">
                 {% for error in form.non_field_errors %}
                     <li>{{ error }}</li>
                 {% endfor %}
@@ -37,31 +37,29 @@
 
         {% for field in form %}
             <div>
-                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label_tag }}</label>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ field.label_tag }}</label>
                 
-                {% if field.name == 'password' and form_type == 'signup' %}
-                    {{ field|add_attrs:"class:w-full px-4 py-2 border rounded-lg mt-1,id:signup_password" }}
-                {% else %}
-                     {{ field|add_attrs:"class:w-full px-4 py-2 border rounded-lg mt-1" }}
-                {% endif %}
+                {% with field_classes_str="w-full px-4 py-2 border rounded-lg mt-1 text-gray-900 bg-white placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500" %}
+                    {% if field.name == 'password' and form_type == 'signup' %}
+                        {{ field|add_attrs:"id:signup_password,class:w-full px-4 py-2 border rounded-lg mt-1 text-gray-900 bg-white placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500" }}
+                    {% else %}
+                         {{ field|add_attrs:"class:w-full px-4 py-2 border rounded-lg mt-1 text-gray-900 bg-white placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500" }}
+                    {% endif %}
+                {% endwith %}
 
                 {% if field.name == 'password' and form_type == 'signup' %}
-                    <ul id="password-criteria-list" class="password-criteria" style="display: none;">
+                    <ul id="password-criteria-list" class="password-criteria text-sm text-gray-600 dark:text-gray-400" style="display: none;">
                         <li id="length-criterion" class="invalid">At least 8 characters</li>
                         <li id="number-criterion" class="invalid">Contains a number</li>
                         <li id="uppercase-criterion" class="invalid">Contains an uppercase letter</li>
                         <li id="lowercase-criterion" class="invalid">Contains a lowercase letter</li>
+                        {# JavaScript will handle .valid/.invalid class and potentially colors #}
                     </ul>
                 {% endif %}
                 
-                <!-- {# Help text for all fields (user commented this out) #}
-                {% if field.help_text %}
-                    <p class="mt-1 text-sm text-gray-500">{{ field.help_text|safe }}</p>
-                {% endif %} -->
-                
                 {% if field.name != 'password' or form_type != 'signup' %}
                     {% if field.errors %}
-                        <ul class="errorlist field-errors">
+                        <ul class="errorlist field-errors text-red-500 dark:text-red-400 text-xs mt-1">
                             {% for error in field.errors %}
                                 <li>{{ error }}</li>
                             {% endfor %}
@@ -71,27 +69,27 @@
             </div>
         {% endfor %}
         
-        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg">
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-bold py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-colors duration-300">
             {% if form_type == 'login' %}Login{% else %}Sign Up{% endif %}
         </button>
     </form>
 
-    <div class="mt-4 text-center">
+    <div class="mt-6 text-center">
         {% if form_type == 'login' %}
-            <p>Don't have an account? <a href="{% url 'signup' %}" class="text-blue-500 hover:underline">Sign Up</a></p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Don't have an account? <a href="{% url 'signup' %}" class="text-indigo-600 hover:underline dark:text-indigo-400 dark:hover:text-indigo-300">Sign Up</a></p>
         {% else %}
-            <p>Already have an account? <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Login</a></p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Already have an account? <a href="{% url 'login' %}" class="text-indigo-600 hover:underline dark:text-indigo-400 dark:hover:text-indigo-300">Login</a></p>
         {% endif %}
         <a href="{% url 'homepage:index' %}" class="mt-4 inline-block relative items-center justify-center p-0.5 mb-2 me-2 overflow-hidden rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800" style="text-decoration: none;">
-            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white text-gray-900 group-hover:text-white dark:text-white rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-200 group-hover:text-white rounded-md group-hover:bg-opacity-0 group-hover:dark:bg-opacity-0">
                 Home
             </span>
         </a>
     </div>
-    {# Footer is inherited from base.html by not overriding the footer block #}
 </div>
 {% endblock content %}
 
 {% block scripts %}
+    {{ block.super }} {# Ensure base.html scripts are included #}
     <script src="{% static 'js/auth_scripts.js' %}"></script>
 {% endblock %}
