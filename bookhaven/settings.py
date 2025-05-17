@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'content',  # Content app
     'discussions', # Discussions app
     'dashboard',   # Dashboard app
+    'search_hub',  # Search Hub app
 ]
 
 MIDDLEWARE = [

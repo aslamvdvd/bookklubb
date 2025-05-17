@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Search Results {% if query %}- {{ query }}{% endif %} | {{ platform_name|default:"BookHaven" }}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-indigo-700 mb-8">
+            Discussion Group Search Results
+        </h1>
+
+        <!-- Search Form (can be reused or a simplified version) -->
+        <form method="get" action="{% url 'search_hub:discussion_search_results' %}" class="mb-10 bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <input type="text" name="query" value="{{ request.GET.query|default_if_none:'' }}" 
+                       class="w-full px-4 py-3 text-gray-700 border-2 border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out" 
+                       placeholder="Search by group name, creator, focus...">
+                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-r-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-150 ease-in-out">
+                    Search
+                </button>
+            </div>
+            <!-- Future: Add filter options here -->
+        </form>
+
+        {% if query %}
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Results for "<span class="text-indigo-600">{{ query }}</span>"</h2>
+            {% if results %}
+                <div class="space-y-6">
+                    {% for group in results %}
+                        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                            <h3 class="text-xl font-bold text-indigo-700 mb-2">
+                                <a href="#" class="hover:underline">{{ group.name }}</a> {# Placeholder link #}
+                            </h3>
+                            {% if group.description %}
+                                <p class="text-gray-600 mb-3 text-sm">{{ group.description|truncatewords:30 }}</p>
+                            {% endif %}
+                            <div class="text-xs text-gray-500 space-y-1">
+                                <p>
+                                    <span class="font-semibold">Creator:</span> 
+                                    {{ group.creator.first_name|default:group.creator.username }} {{ group.creator.last_name|default:'' }}
+                                    (<span class="italic">@{{ group.creator.username }}</span>)
+                                </p>
+                                <p>
+                                    <span class="font-semibold">Focus:</span> 
+                                    <a href="#" class="text-indigo-500 hover:underline">{{ group.content_item.title }}</a> {# Placeholder link for content item #}
+                                </p>
+                                <p><span class="font-semibold">Created:</span> {{ group.created_at|date:"d M Y" }}</p>
+                                <p><span class="font-semibold">Privacy:</span> {% if group.is_private %}Private{% else %}Public{% endif %}</p>
+                                <p><span class="font-semibold">Members:</span> {{ group.members.count }}</p>
+                            </div>
+                            <div class="mt-4">
+                                <a href="#" class="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition">View Group &rarr;</a> {# Placeholder link #}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-md shadow">
+                    <p class="text-yellow-700">No discussion groups found matching your query "<span class="font-semibold">{{ query }}</span>".</p>
+                    <p class="text-yellow-600 text-sm mt-2">Try searching with different keywords or check your spelling.</p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-md shadow">
+                <p class="text-blue-700">Please enter a search term above to find discussion groups.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
