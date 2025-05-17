@@ -15,9 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 searchModal.classList.remove('opacity-0', 'pointer-events-none');
                 searchModal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
-                modalSearchInput.focus();
-                // Clear previous dynamic results when opening
-                if (dynamicSearchResultsContainer) dynamicSearchResultsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Start typing to see results.</p>'; 
+                
+                if (modalSearchInput) {
+                    modalSearchInput.value = ''; // Clear the input field
+                    modalSearchInput.focus();
+                }
+                if (dynamicSearchResultsContainer) {
+                     dynamicSearchResultsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Start typing to see results.</p>';
+                }
             }, 20);
         }
     }
