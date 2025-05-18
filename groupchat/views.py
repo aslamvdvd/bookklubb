@@ -34,19 +34,35 @@ def group_chat_view(request, group_id):
                 django_messages.error(request, f"Could not send message: {e}")
             return redirect('groupchat:group_chat_view', group_id=group.id)
         else:
-            # Form is invalid, errors will be bound to the form instance
-            # We need to pass this form back to the template to display errors
-            # For simplicity now, just adding a generic error message. 
-            # Proper error display would require passing the form with errors to the context.
-            for field, errors in form.errors.items():
-                for error in errors:
-                    django_messages.error(request, f"{field.capitalize() if field != '__all__' else 'Form'}: {error}")
-            # Fall through to render the page with existing messages and the (invalid) form if needed
-            # Or, if you prefer a cleaner redirect on error:
-            # return redirect('groupchat:group_chat_view', group_id=group.id)
+            # Form is invalid
+            # Check if the only error is the specific empty submission error from forms.py
+            is_only_empty_submission_error = False
+            if form.non_field_errors() and len(form.non_field_errors()) == 1:
+                if "You must provide either text or a file for your message." in form.non_field_errors()[0]:
+                    is_only_empty_submission_error = True
 
-    # For GET requests or after an invalid POST, create a fresh form instance
-    form = MessageForm() 
+            # Only add Django messages (pop-ups) if it's NOT the specific empty submission error
+            # or if there are other errors present.
+            if not is_only_empty_submission_error:
+                for field, errors_list in form.errors.items():
+                    for error in errors_list:
+                        # Construct a more generic message or use the error as is
+                        field_name = field.replace('_', ' ').capitalize() if field != '__all__' else 'Form'
+                        django_messages.error(request, f"{field_name}: {error}")
+            
+            # Fall through to render the page with existing messages and the (invalid) form
+            # The template group_chat_interface.html should display form.non_field_errors and field-specific errors.
+
+    # For GET requests or after an invalid POST where we don't redirect, create a fresh form instance if needed
+    # However, if POST was invalid, we want to re-render WITH the bound form containing errors.
+    # So, form = MessageForm() should only be for GET.
+    # The current structure correctly re-uses the bound form for invalid POSTs.
+    
+    # If it was a POST request and the form was invalid, the `form` variable here is already the bound form with errors.
+    # If it was a GET request, we need a new unbound form.
+    if request.method == 'GET':
+        form = MessageForm()
+    # For an invalid POST, `form` is already the bound form from above.
 
     chat_messages = GroupChatMessage.objects.filter(group=group).select_related('user').order_by('timestamp')
     

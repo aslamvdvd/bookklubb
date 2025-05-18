@@ -166,7 +166,7 @@
                 </label>
                 {{ form.file_attachment }} {# This is hidden by widget attrs, label above triggers it #}
 
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-5 rounded-lg transition">
+                <button id="send-message-button" type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-5 rounded-lg transition">
                     Send
                 </button>
             </form>
@@ -206,21 +206,43 @@
             messageList.scrollTop = messageList.scrollHeight;
         }
 
-        const fileInput = document.getElementById('{{ form.file_attachment.id_for_label }}'); // Use form field ID
+        const fileInput = document.getElementById('{{ form.file_attachment.id_for_label }}'); // Matches ID from forms.py
         const fileChosenFeedback = document.getElementById('file-chosen-feedback');
+        const textInput = document.getElementById('{{ form.text_content.id_for_label }}'); // Django default ID
+        const sendButton = document.getElementById('send-message-button');
 
-        if (fileInput && fileChosenFeedback) {
+        function updateSendButtonState() {
+            const textValue = textInput ? textInput.value.trim() : '';
+            const fileSelected = fileInput ? fileInput.files.length > 0 : false;
+            if (sendButton) {
+                sendButton.disabled = !(textValue || fileSelected);
+            }
+        }
+
+        if (fileInput) {
             fileInput.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    fileChosenFeedback.textContent = `File selected: ${this.files[0].name}`;
-                } else {
-                    fileChosenFeedback.textContent = '';
+                if (fileChosenFeedback) {
+                    if (this.files.length > 0) {
+                        fileChosenFeedback.textContent = `File selected: ${this.files[0].name}`;
+                    } else {
+                        fileChosenFeedback.textContent = '';
+                    }
                 }
+                updateSendButtonState();
             });
         }
+
+        if (textInput) {
+            textInput.addEventListener('input', updateSendButtonState);
+        }
+
+        // Initial state update
+        updateSendButtonState();
         
-        const textarea = document.querySelector('.form-field-container textarea');
-        if (textarea) {
+        const textarea = document.querySelector('.form-field-container textarea'); // Already selected earlier
+        if (textarea) { // Ensure this uses the 'textInput' const if they are the same element.
+                      // For now, assuming 'textarea' might be a more generic selector for styling, 
+                      // and 'textInput' (by ID) is for logic.
             function autoResizeTextarea() {
                 textarea.style.height = 'auto';
                 let newHeight = textarea.scrollHeight;
