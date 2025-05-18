@@ -34,14 +34,14 @@
         .message-bubble.user-message {
             background-color: #4f46e5; /* Tailwind indigo-600 */
             color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
+            margin-right: auto; /* Changed from margin-left for left alignment */
+            border-bottom-left-radius: 5px; /* Adjusted for left alignment */
         }
         .message-bubble.other-message {
             background-color: #e5e7eb; /* Tailwind gray-200 */
             color: #1f2937; /* Tailwind gray-800 */
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
+            margin-left: auto; /* Changed from margin-right for right alignment */
+            border-bottom-right-radius: 5px; /* Adjusted for right alignment */
         }
         .message-meta {
             font-size: 0.7rem; /* Slightly smaller */
@@ -128,8 +128,10 @@
             {% if messages %}
                 {% for message_item in messages %} {# Renamed to message_item to avoid clash with django messages #}
                     <div class="message-bubble {% if message_item.user == request.user %}user-message{% else %}other-message{% endif %}">
-                        {% if message_item.user != request.user %}
-                            <strong class="block text-sm mb-1">{{ message_item.user.first_name|default:message_item.user.username }}</strong>
+                        {% if message_item.user == request.user %}
+                            <strong class="block text-sm mb-1">You</strong>
+                        {% else %}
+                            <strong class="block text-sm mb-1">{{ message_item.user.get_full_name|default:message_item.user.username }}</strong>
                         {% endif %}
                         
                         {% if message_item.text_content %}
@@ -239,10 +241,18 @@
         // Initial state update
         updateSendButtonState();
         
-        const textarea = document.querySelector('.form-field-container textarea'); // Already selected earlier
-        if (textarea) { // Ensure this uses the 'textInput' const if they are the same element.
-                      // For now, assuming 'textarea' might be a more generic selector for styling, 
-                      // and 'textInput' (by ID) is for logic.
+        const textarea = document.getElementById('{{ form.text_content.id_for_label }}'); // Use the same ID as textInput
+        
+        if (textarea) {
+            textarea.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Prevent newline
+                    if (sendButton && !sendButton.disabled) {
+                        sendButton.click(); // Trigger send button click
+                    }
+                } // Allow Shift+Enter to add a newline by not doing anything here
+            });
+
             function autoResizeTextarea() {
                 textarea.style.height = 'auto';
                 let newHeight = textarea.scrollHeight;

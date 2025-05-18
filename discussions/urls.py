@@ -7,4 +7,5 @@ urlpatterns = [
     path('create/', views.create_discussion_group, name='create_group'),
     # Future URLs for discussions app can be added here
     # e.g., path('<int:group_id>/', views.group_detail, name='group_detail'),
+    path('group/<int:group_id>/join/', views.join_group_view, name='join_group'),
 ] 

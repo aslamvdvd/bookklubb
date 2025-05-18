@@ -43,6 +43,9 @@ class DiscussionGroup(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['creator', 'name'], name='unique_group_name_per_creator')
+        ]
 
     def __str__(self):
         return f"{self.name} (for: {self.content_item.title})"

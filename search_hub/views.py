@@ -65,6 +65,10 @@ def search_discussions_view(request):
         
         results = results.distinct() # Ensure distinct results after all filtering
 
+        # Exclude groups created by the current user
+        if request.user.is_authenticated:
+            results = results.exclude(creator=request.user)
+
     else: # If form is not valid (e.g., on initial page load without GET params)
         # Apply default ordering for initial load if no specific ordering is requested
         ordering_param = request.GET.get('ordering', '-created_at')
