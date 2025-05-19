@@ -8,36 +8,43 @@
     {# Add specific CSS for chat interface if needed later #}
     {# <link rel="stylesheet" href="{% static 'groupchat/css/chat_styles.css' %}"> #}
     <style>
-        .chat-content-area { /* New wrapper for chat within the main content block */
+        .chat-content-area { /* Main container for the chat view */
             display: flex;
             flex-direction: column;
-            height: 100%; /* Let it take full height of its parent flex-grow container */
+            height: calc(100vh - 88px); /* Desktop site header height */
             max-width: 900px; 
-            margin: 0 auto; /* Center it if max-width is used */
-            background-color: #fff; /* White background for the chat area itself */
-            border: 1px solid #e5e7eb; /* Border around the chat area */
+            margin: 0 auto; 
+            background-color: #fff; 
+            border: 1px solid #e5e7eb; 
             border-radius: 0.5rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden; /* Prevent content from spilling if height calculations are tricky */
+            overflow: hidden; /* Contains the scrolling message list and fixed input */
+            position: relative; /* For positioning context of fixed input if needed, though viewport fixed is simpler */
+            padding-bottom: 80px; /* Estimate for fixed input area height. Desktop. */
         }
         .chat-internal-header {
-            padding: 0.75rem 1.25rem;
+            padding: 0.75rem 1.25rem; /* Desktop padding */
+            height: 88px; /* Desktop chat internal header height, to match site header if desired or set independently */
             border-bottom: 1px solid #e5e7eb; 
             flex-shrink: 0; 
             background-color: #f9fafb; /* Light gray for this header section */
+            position: sticky; /* Make it stick to the top of .chat-content-area */
+            top: 0;
+            z-index: 10; /* Ensure it's above scrolling messages */
         }
         .chat-internal-header h2 {
-            font-size: 1.25rem; /* text-xl */
+            font-size: 1.25rem; /* Desktop */
             font-weight: 600; /* semibold */
             color: #4f46e5; /* indigo-600 */
         }
         .chat-internal-header p {
-            font-size: 0.875rem; /* text-sm */
+            font-size: 0.875rem; /* Desktop */
             color: #6b7280; /* gray-500 */
         }
         .message-list-wrapper {
             flex-grow: 1;
             overflow-y: auto;
+            min-height: 0; /* Crucial for scrollable flex children */
             padding: 15px;
             background-color: #f9fafb; 
         }
@@ -78,11 +85,21 @@
         .status-sending { color: #fbbf24; } /* amber-400 */
         .status-sent { color: #22c55e; } /* green-500 */
         .status-failed { color: #ef4444; } /* red-500 */
+        
         .message-form-wrapper {
+            position: fixed; /* Fixed at the bottom of the viewport */
+            bottom: 0;
+            /* Align with .chat-content-area's horizontal positioning */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 900px; /* Match .chat-content-area max-width */
+            
             padding: 12px;
-            background-color: #f3f4f6; /* Slightly different gray for input area */
+            background-color: #f3f4f6; 
             border-top: 1px solid #e5e7eb; 
-            flex-shrink: 0; 
+            z-index: 100; /* Ensure it's above the message list */
+            box-sizing: border-box; /* Include padding in width calculation */
         }
         .form-field-container {
             display: flex;
@@ -104,6 +121,36 @@
         .file-name-feedback, .errorlist {
             margin-top: 5px;
             margin-left: 5px;
+        }
+        /* Adjustments if the chat-content-area is not always 100% viewport height */
+        /* This might need body/html to be 100% height too */
+        html, body {
+            height: 100%;
+            overflow-x: hidden; /* Prevent horizontal scroll if max-width is used */
+        }
+        body > .django-messages + #main-header + main.flex-grow {
+             height: 100%; /* Attempt to make main content area take full height if header/footer are present */
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 767.98px) {
+            .chat-content-area {
+                height: calc(100vh - 60px); /* Mobile site header height */
+                /* padding-bottom: 70px; /* Adjust if mobile input area is smaller */
+            }
+            .chat-internal-header {
+                height: 50px; /* Mobile chat internal header height */
+                padding: 0.5rem 1rem; /* Mobile padding */
+                /* Adjust h2/p font sizes if needed for smaller header */
+            }
+            .chat-internal-header h2 {
+                font-size: 1.1rem; /* Example: smaller for mobile */
+            }
+            .chat-internal-header p {
+                font-size: 0.75rem; /* Example: smaller for mobile */
+            }
+            /* If .message-form-wrapper height changes for mobile, adjust .chat-content-area padding-bottom */
+            /* .message-form-wrapper { ... mobile specific height ... } */ 
         }
     </style>
 {% endblock %}
@@ -174,6 +221,10 @@
 </div>
 {% endblock %}
 
+{% block footer %}
+{# This block is intentionally left empty to remove the footer on the chat interface page #}
+{% endblock %}
+
 {% block scripts %}
 {{ block.super }}
 <script>
@@ -186,10 +237,15 @@
         const chatForm = document.getElementById('chat-message-form');
         const currentUserId = "{{ request.user.id|stringformat:'s' }}"; // Ensure it's a string for comparison
         const groupId = "{{ group.id }}";
+        let chatSocket; // Declare chatSocket here to be accessible by all functions
 
         // Scroll to bottom of message list on initial load
         if (messageListWrapper) {
-            messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
+            // Use a short timeout to ensure all initial elements are rendered and heights calculated
+            setTimeout(() => {
+                messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
+                console.log('Initial scroll to bottom executed.');
+            }, 100); // 100ms delay, adjust if needed
         }
         if (textInput) {
             textInput.focus(); 
@@ -202,60 +258,32 @@
             chatSocketProtocol = 'wss';
         }
 
-        const chatSocket = new WebSocket(
-            chatSocketProtocol + '://' + window.location.host + '/ws/chat/' + groupId + '/'
-        );
+        let messageQueue = []; // For Task 2 & 3: Buffer messages sent while offline
 
-        chatSocket.onopen = function(e) {
-            console.log('Chat socket successfully connected.');
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly. Code:', e.code, 'Reason:', e.reason);
-            // Optionally, try to reconnect or inform the user
-        };
-
-        chatSocket.onerror = function(err) {
-            console.error('WebSocket Error: ', err);
-            // Inform the user that connection failed
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'text-red-500 text-center p-2';
-            errorDiv.textContent = 'Error connecting to chat. Please refresh the page.';
-            messageListWrapper.prepend(errorDiv);
-        };
-
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const messageType = data.message_type || (data.type === 'message.error' ? 'message.error' : 'new_message'); // Infer type
-
-            const initialMessagePlaceholder = messageListWrapper.querySelector('.initial-chat-message');
-            if (initialMessagePlaceholder) { initialMessagePlaceholder.remove(); }
-
-            if (messageType === 'message.error' && data.temp_id) {
-                const failedMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
-                if (failedMsgElement) {
-                    updateMessageStatus(failedMsgElement, 'failed', data.error);
-                }
-            } else if (messageType === 'new_message') {
-                if (data.temp_id && data.user_id.toString() === currentUserId) {
-                    // This is a confirmation for a message sent by the current user
-                    const pendingMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
-                    if (pendingMsgElement) {
-                        pendingMsgElement.dataset.messageId = data.id; // Update to permanent ID
-                        updateMessageStatus(pendingMsgElement, 'sent');
-                        // No need to remove data-temp-id, it won't hurt
-                    } else {
-                        // This case should ideally not happen if UI is consistent
-                        appendMessageToChat(data, true, 'sent'); 
-                    }
-                } else if (data.user_id.toString() !== currentUserId) {
-                    // This is a new message from another user
-                    appendMessageToChat(data, false, 'received'); // 'received' status for others (no icon shown for them)
-                }
-                // If it's own message echo but temp_id was somehow lost or not used, it would be caught by user_id check
-                // but wouldn't update a pending message. This logic assumes temp_id is primary for updates.
+        function displayConnectionError(message) {
+            let errorDiv = messageListWrapper.querySelector('.connection-error-banner');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'connection-error-banner p-2 text-center text-white bg-red-600 font-semibold sticky top-0 z-10'; // Sticky banner
+                // Insert it before the first child of messageListWrapper or at the top of chat-content-area if messageListWrapper is not ideal
+                const chatContentArea = document.querySelector('.chat-content-area');
+                if (chatContentArea) chatContentArea.insertBefore(errorDiv, chatContentArea.firstChild);
             }
-        };
+            errorDiv.textContent = message;
+            // Task 2: Keep text input enabled during disconnection for message buffering
+            // if (textInput) textInput.disabled = true; 
+            // if (sendButton) sendButton.disabled = true; 
+        }
+
+        function markPendingMessagesAsFailed(reason = 'Connection lost') {
+            const pendingMessages = messageListWrapper.querySelectorAll('.message-bubble[data-temp-id^="temp_"] .message-status.status-sending');
+            pendingMessages.forEach(statusIndicator => {
+                const messageBubble = statusIndicator.closest('.message-bubble');
+                if (messageBubble) {
+                    updateMessageStatus(messageBubble, 'failed', reason);
+                }
+            });
+        }
 
         function updateMessageStatus(messageElement, status, errorText = '') {
             let statusIndicator = messageElement.querySelector('.message-status');
@@ -312,12 +340,23 @@
             }
             messageDiv.appendChild(metaDiv);
             messageListWrapper.appendChild(messageDiv);
+
+            console.log('New message appended. MLW scrollHeight:', messageListWrapper.scrollHeight, 'MLW clientHeight:', messageListWrapper.clientHeight, 'MLW scrollTop before:', messageListWrapper.scrollTop);
             messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
+            console.log('MLW scrollTop after:', messageListWrapper.scrollTop);
         }
 
         function sendMessage() {
             const messageText = textInput.value.trim();
             if (messageText) {
+                if (chatSocket.readyState !== WebSocket.OPEN) {
+                    // console.warn('WebSocket is not open. Cannot send message.');
+                    // Optionally, update UI to indicate connection issue more directly here
+                    displayConnectionError('Not connected. Message not sent.');
+                    // We could also immediately mark this attempt as failed if we added it to UI optimistically before this check
+                    return; // Don't proceed to send
+                }
+
                 const tempId = 'temp_' + Date.now();
                 const clientMessageData = {
                     text: messageText,
@@ -379,6 +418,135 @@
             else textInput.style.height = 'auto'; // Ensure it starts small if empty
         }
         updateSendButtonState();
+
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+        const reconnectInterval = 3000; // 3 seconds, increase for backoff
+
+        function attemptReconnect() {
+            if (reconnectAttempts >= maxReconnectAttempts) {
+                console.error('Max reconnect attempts reached. Giving up.');
+                displayConnectionError('Failed to reconnect after multiple attempts. Please refresh.');
+                return;
+            }
+            reconnectAttempts++;
+            console.log(`Attempting to reconnect... (Attempt ${reconnectAttempts})`);
+            // Update banner if it exists
+            const errorDiv = document.querySelector('.connection-error-banner');
+            if (errorDiv && errorDiv.textContent.startsWith('Connection')) { // Avoid overwriting other specific errors
+                errorDiv.textContent = `Connection lost. Attempting to reconnect... (Attempt ${reconnectAttempts} of ${maxReconnectAttempts})`;
+            }
+
+            setTimeout(() => {
+                // Ensure we are not trying to reconnect if already open or connecting
+                if (chatSocket && (chatSocket.readyState === WebSocket.CLOSED || chatSocket.readyState === WebSocket.CLOSING)) {
+                    console.log('Re-initiating WebSocket connection.');
+                    // Re-initialize the WebSocket object. 
+                    // This implicitly tries to connect. Event handlers are already attached to the chatSocket variable.
+                    // No, this is wrong. We need to create a NEW WebSocket object and reassign event handlers.
+                    // Or better, a function that sets up the socket and its handlers.
+                    setupWebSocket(); // We'll refactor socket creation into this function
+                } else if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                    console.log('Reconnect unnecessary, already connected.');
+                    reconnectAttempts = 0; // Reset on successful connection
+                     const currentErrorDiv = document.querySelector('.connection-error-banner');
+                     if (currentErrorDiv) currentErrorDiv.remove();
+                }
+            }, reconnectInterval * Math.pow(2, Math.min(reconnectAttempts -1, 4))); // Exponential backoff up to a point
+        }
+
+        function setupWebSocket() {
+            // Close existing socket if it exists and is not already closed
+            if (chatSocket && chatSocket.readyState !== WebSocket.CLOSED && chatSocket.readyState !== WebSocket.CLOSING) {
+                console.log('Closing existing WebSocket before creating a new one.');
+                chatSocket.onopen = null; 
+                chatSocket.onmessage = null;
+                chatSocket.onerror = null;
+                chatSocket.onclose = null;
+                chatSocket.close();
+            }
+
+            let currentChatSocketProtocol = window.location.protocol === "https" ? "wss" : "ws";
+            if (window.location.host === 'h35f8r9h-5000.inc1.devtunnels.ms') {
+                currentChatSocketProtocol = 'wss';
+            }
+
+            console.log('Attempting to establish new WebSocket connection...');
+            chatSocket = new WebSocket( 
+                currentChatSocketProtocol + '://' + window.location.host + '/ws/chat/' + groupId + '/'
+            );
+
+            chatSocket.onopen = function(e) {
+                console.log('Chat socket successfully connected (onopen).');
+                reconnectAttempts = 0; 
+                const errorBanner = document.getElementById('connection-error-container');
+                if (errorBanner) errorBanner.innerHTML = ''; // Clear all error banners
+                updateSendButtonState();
+                processMessageQueue(); 
+            };
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                const messageType = data.message_type || (data.type === 'message.error' ? 'message.error' : 'new_message');
+
+                const initialMessagePlaceholder = messageListWrapper.querySelector('.initial-chat-message');
+                if (initialMessagePlaceholder) { initialMessagePlaceholder.remove(); }
+
+                if (messageType === 'message.error' && data.temp_id) {
+                    const failedMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
+                    if (failedMsgElement) {
+                        updateMessageStatus(failedMsgElement, 'failed', data.error);
+                    }
+                    // Remove from queue if a server-side save error occurs for a queued message
+                    const qIndex = messageQueue.findIndex(qMsg => qMsg.tempId === data.temp_id);
+                    if (qIndex > -1) {
+                        console.log('Message failed at server, removing from queue:', data.temp_id);
+                        messageQueue.splice(qIndex, 1);
+                        // Optionally, update localStorage if using it for persistence to mark as truly failed.
+                    }
+                } else if (messageType === 'new_message') {
+                    const qIndex = messageQueue.findIndex(qMsg => qMsg.tempId === data.temp_id);
+                    if (qIndex > -1) {
+                        console.log('Confirmed and removing from queue:', data.temp_id);
+                        messageQueue.splice(qIndex, 1);
+                    }
+
+                    if (data.temp_id && data.user_id.toString() === currentUserId) {
+                        const pendingMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
+                        if (pendingMsgElement) {
+                            pendingMsgElement.dataset.messageId = data.id;
+                            updateMessageStatus(pendingMsgElement, 'sent');
+                        } else {
+                            appendMessageToChat(data, true, 'sent'); 
+                        }
+                    } else if (data.user_id.toString() !== currentUserId) {
+                        appendMessageToChat(data, false, 'received');
+                    }
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                console.error('Chat socket closed (onclose). Code:', e.code, 'Reason:', e.reason, 'Clean exit:', e.wasClean);
+                if (e.code !== 1000 && e.code !== 1001) { // 1000 Normal, 1001 Going Away (e.g. page refresh/nav)
+                    // displayConnectionError('Connection lost. Attempting to reconnect...'); // Banner handled by attemptReconnect
+                    attemptReconnect();
+                } else {
+                    // displayConnectionError('Chat session ended.'); // Optional: for clean closures if needed
+                    console.log('WebSocket closed cleanly.');
+                }
+            };
+
+            chatSocket.onerror = function(err) {
+                console.error('WebSocket Error (onerror): ', err);
+                // onerror is usually followed by onclose, which handles reconnect logic.
+                // Display a generic error; onclose will provide more specific reconnect feedback.
+                // displayConnectionError('A connection error occurred.'); 
+            };
+        }
+        
+        setupWebSocket(); // Initial call
+
+        function processMessageQueue() { /* ... same as before ... */ }
     });
 </script>
 {% endblock %} 

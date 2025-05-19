@@ -18,9 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from homepage import views as homepage_views
+from bookhaven import views as project_views # Import the new views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Dummy endpoints to silence browser dev tool requests
+    path('json/version', project_views.json_debug_view, name='json_version'),
+    path('json/list', project_views.json_debug_view, name='json_list'),
     path('login/', homepage_views.login_view, name='login'),
     path('signup/', homepage_views.signup_view, name='signup'),
     path('logout/', homepage_views.logout_view, name='logout'),

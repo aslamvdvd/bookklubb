@@ -1,0 +1,20 @@
+Based on our previous discussions and typical chat features, here are some key areas we could focus on next. Which of these would you like to prioritize?
+A. Enhanced WebSocket Error Handling & UI Feedback:
+Improve how the client-side JavaScript handles WebSocket onclose and onerror events.
+Provide clearer UI feedback to the user if the connection is lost (e.g., a banner, disable message input).
+Attempt to mark any "pending" messages as "failed" if the connection drops before they are confirmed.
+B. File Uploads via WebSocket:
+Currently, the file input is present, but files are not sent via WebSocket.
+Modify the client-side sendMessage function to handle File objects, likely by reading them as ArrayBuffer or Base64 strings.
+Update the ChatConsumer to receive and process file data (e.g., save file_attachment along with the text message). This will involve more complex data serialization/deserialization.
+C. Typing Indicators:
+Show when another user in the group is typing a message.
+This involves sending "typing" and "stopped_typing" events over WebSockets.
+D. User Presence (Online/Offline Status - Basic):
+Indicate which users are currently connected to the chat room.
+Requires tracking connections/disconnections in the consumer and broadcasting presence updates.
+E. Role Management (Admin Features):
+Develop a UI for group administrators to manage member roles (e.g., promote to admin, demote, kick). This was a previously agreed-upon next step. It's a larger feature involving new views, templates, and logic.
+F. UI/UX Refinements for Mobile:
+Address the issue you mentioned earlier: "the text typing area, attach icon and send button are not fitting in the viewport of the mobile screen. i only see the text typing area and i dont see the attach icon and send button." This would involve responsive CSS adjustments for .message-form-wrapper.
+Please let me know which direction you'd like to go next. If the UI gap is fixed, addressing the mobile input area (F) might be a good quick win for usability. Otherwise, A, B, or E are more feature-rich enhancements.
