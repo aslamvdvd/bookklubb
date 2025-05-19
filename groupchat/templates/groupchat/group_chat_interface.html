@@ -11,10 +11,7 @@
         .chat-content-area { /* New wrapper for chat within the main content block */
             display: flex;
             flex-direction: column;
-            /* Height will be 100% of its container if content block allows, or set explicitly if needed */
-            /* e.g., height: calc(100vh - HeaderHeight - FooterHeight - ContentPaddingY); */
-            /* For now, let's aim for a large fixed height, adjust based on testing with header/footer */
-            height: calc(100vh - 200px); /* Placeholder: Adjust 200px based on actual header/footer/padding */
+            height: 100%; /* Let it take full height of its parent flex-grow container */
             max-width: 900px; 
             margin: 0 auto; /* Center it if max-width is used */
             background-color: #fff; /* White background for the chat area itself */
@@ -66,11 +63,21 @@
             font-size: 0.75rem; 
             color: #6b7280; 
             margin-top: 4px;
+            display: flex; /* For status icon alignment */
+            align-items: center;
+            gap: 5px; /* Space between timestamp and status */
         }
         .user-message .message-meta {
             color: #c7d2fe; 
             text-align: right;
         }
+        .message-status {
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .status-sending { color: #fbbf24; } /* amber-400 */
+        .status-sent { color: #22c55e; } /* green-500 */
+        .status-failed { color: #ef4444; } /* red-500 */
         .message-form-wrapper {
             padding: 12px;
             background-color: #f3f4f6; /* Slightly different gray for input area */
@@ -109,9 +116,11 @@
     </div>
 
     <div class="message-list-wrapper">
+        {# Messages will be dynamically populated by WebSocket #}
+        {# Keep existing messages if any are rendered by the initial HTTP request (e.g., message history) #}
         {% if messages %}
             {% for message_item in messages %}
-                <div class="message-bubble {% if message_item.user == request.user %}user-message{% else %}other-message{% endif %}">
+                <div class="message-bubble {% if message_item.user == request.user %}user-message{% else %}other-message{% endif %}" data-message-id="{{ message_item.id }}">
                     {% if message_item.user == request.user %}
                         <strong class="block text-sm mb-1">You</strong>
                     {% else %}
@@ -126,16 +135,23 @@
                             </span>
                         </a>
                     {% endif %}
-                    <div class="message-meta">{{ message_item.timestamp|date:"P, M d, Y" }}</div>
+                    <div class="message-meta">
+                        <span>{{ message_item.timestamp|date:"P, M d, Y" }}</span>
+                        {% if message_item.user == request.user %}
+                            {# Assuming messages loaded from history are considered "sent" #}
+                            <span class="message-status status-sent" title="Sent">[S]</span> 
+                        {% endif %}
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
-            <p class="text-center text-gray-500 py-10">No messages yet. Start the conversation!</p>
+            <p class="initial-chat-message text-center text-gray-500 py-10">No messages yet. Start the conversation!</p>
         {% endif %}
     </div>
 
     <div class="message-form-wrapper">
-        <form method="post" enctype="multipart/form-data" class="form-field-container">
+        {# The form tag is still useful for structure, but its default submission will be prevented #}
+        <form method="post" enctype="multipart/form-data" class="form-field-container" id="chat-message-form">
             {% csrf_token %}
             {{ form.text_content }} 
             <label for="{{ form.file_attachment.id_for_label }}" class="file-input-label">
@@ -163,19 +179,167 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const messageListWrapper = document.querySelector('.message-list-wrapper');
-        if (messageListWrapper) {
-            messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
-        }
-
         const textInput = document.getElementById('{{ form.text_content.id_for_label }}');
-        if (textInput) {
-            textInput.focus(); // Autofocus
-        }
-
         const fileInput = document.getElementById('{{ form.file_attachment.id_for_label }}');
         const fileChosenFeedback = document.getElementById('file-chosen-feedback');
         const sendButton = document.getElementById('send-message-button');
+        const chatForm = document.getElementById('chat-message-form');
+        const currentUserId = "{{ request.user.id|stringformat:'s' }}"; // Ensure it's a string for comparison
+        const groupId = "{{ group.id }}";
 
+        // Scroll to bottom of message list on initial load
+        if (messageListWrapper) {
+            messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
+        }
+        if (textInput) {
+            textInput.focus(); 
+        }
+
+        // WebSocket setup
+        let chatSocketProtocol = window.location.protocol === "https" ? "wss" : "ws";
+        // Workaround for dev tunnels that might not correctly set X-Forwarded-Proto for ASGI
+        if (window.location.host === 'h35f8r9h-5000.inc1.devtunnels.ms') {
+            chatSocketProtocol = 'wss';
+        }
+
+        const chatSocket = new WebSocket(
+            chatSocketProtocol + '://' + window.location.host + '/ws/chat/' + groupId + '/'
+        );
+
+        chatSocket.onopen = function(e) {
+            console.log('Chat socket successfully connected.');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly. Code:', e.code, 'Reason:', e.reason);
+            // Optionally, try to reconnect or inform the user
+        };
+
+        chatSocket.onerror = function(err) {
+            console.error('WebSocket Error: ', err);
+            // Inform the user that connection failed
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'text-red-500 text-center p-2';
+            errorDiv.textContent = 'Error connecting to chat. Please refresh the page.';
+            messageListWrapper.prepend(errorDiv);
+        };
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const messageType = data.message_type || (data.type === 'message.error' ? 'message.error' : 'new_message'); // Infer type
+
+            const initialMessagePlaceholder = messageListWrapper.querySelector('.initial-chat-message');
+            if (initialMessagePlaceholder) { initialMessagePlaceholder.remove(); }
+
+            if (messageType === 'message.error' && data.temp_id) {
+                const failedMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
+                if (failedMsgElement) {
+                    updateMessageStatus(failedMsgElement, 'failed', data.error);
+                }
+            } else if (messageType === 'new_message') {
+                if (data.temp_id && data.user_id.toString() === currentUserId) {
+                    // This is a confirmation for a message sent by the current user
+                    const pendingMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
+                    if (pendingMsgElement) {
+                        pendingMsgElement.dataset.messageId = data.id; // Update to permanent ID
+                        updateMessageStatus(pendingMsgElement, 'sent');
+                        // No need to remove data-temp-id, it won't hurt
+                    } else {
+                        // This case should ideally not happen if UI is consistent
+                        appendMessageToChat(data, true, 'sent'); 
+                    }
+                } else if (data.user_id.toString() !== currentUserId) {
+                    // This is a new message from another user
+                    appendMessageToChat(data, false, 'received'); // 'received' status for others (no icon shown for them)
+                }
+                // If it's own message echo but temp_id was somehow lost or not used, it would be caught by user_id check
+                // but wouldn't update a pending message. This logic assumes temp_id is primary for updates.
+            }
+        };
+
+        function updateMessageStatus(messageElement, status, errorText = '') {
+            let statusIndicator = messageElement.querySelector('.message-status');
+            if (!statusIndicator) {
+                const metaDiv = messageElement.querySelector('.message-meta span:first-child'); // Find timestamp span
+                if (metaDiv) { 
+                    statusIndicator = document.createElement('span');
+                    statusIndicator.classList.add('message-status');
+                    metaDiv.parentNode.appendChild(statusIndicator); // Append to message-meta
+                }
+            }
+            if (statusIndicator) {
+                statusIndicator.classList.remove('status-sending', 'status-sent', 'status-failed');
+                statusIndicator.classList.add(`status-${status}`);
+                if (status === 'sending') statusIndicator.textContent = '[P]';
+                else if (status === 'sent') statusIndicator.textContent = '[S]';
+                else if (status === 'failed') statusIndicator.textContent = `[F] ${errorText}`.trim();
+                statusIndicator.title = status.charAt(0).toUpperCase() + status.slice(1) + (errorText ? `: ${errorText}`: '');
+            }
+        }
+
+        function appendMessageToChat(data, isOwnMessage, status = 'sent') {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message-bubble');
+            if (data.temp_id) messageDiv.dataset.tempId = data.temp_id;
+            if (data.id) messageDiv.dataset.messageId = data.id; // Server ID
+
+            messageDiv.classList.add(isOwnMessage ? 'user-message' : 'other-message');
+
+            const strong = document.createElement('strong');
+            strong.classList.add('block', 'text-sm', 'mb-1');
+            strong.textContent = isOwnMessage ? 'You' : data.user_full_name;
+            messageDiv.appendChild(strong);
+
+            if (data.text) {
+                const p = document.createElement('p');
+                p.innerHTML = data.text.replace(/\n/g, '<br>');
+                messageDiv.appendChild(p);
+            }
+            
+            const metaDiv = document.createElement('div');
+            metaDiv.classList.add('message-meta');
+            const timestampSpan = document.createElement('span');
+            const timestamp = new Date(data.timestamp);
+            timestampSpan.textContent = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) + ', ' + 
+                                   timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            metaDiv.appendChild(timestampSpan);
+
+            if (isOwnMessage) {
+                const statusSpan = document.createElement('span');
+                statusSpan.classList.add('message-status');
+                metaDiv.appendChild(statusSpan);
+                updateMessageStatus(messageDiv, status); // Will use the statusSpan just created
+            }
+            messageDiv.appendChild(metaDiv);
+            messageListWrapper.appendChild(messageDiv);
+            messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
+        }
+
+        function sendMessage() {
+            const messageText = textInput.value.trim();
+            if (messageText) {
+                const tempId = 'temp_' + Date.now();
+                const clientMessageData = {
+                    text: messageText,
+                    user_id: currentUserId, // For immediate UI update
+                    user_full_name: "You", // For immediate UI update
+                    timestamp: new Date().toISOString(),
+                    temp_id: tempId
+                };
+                appendMessageToChat(clientMessageData, true, 'sending');
+
+                chatSocket.send(JSON.stringify({
+                    'message': messageText,
+                    'temp_id': tempId
+                }));
+                textInput.value = ''; 
+                autoResizeTextarea(); 
+                updateSendButtonState(); 
+                textInput.focus(); 
+            }
+        }
+
+        if (chatForm) { chatForm.addEventListener('submit', function(event) { event.preventDefault(); sendMessage(); }); }
         function updateSendButtonState() {
             const textValue = textInput ? textInput.value.trim() : '';
             const fileSelected = fileInput ? fileInput.files.length > 0 : false;
@@ -183,7 +347,6 @@
                 sendButton.disabled = !(textValue || fileSelected);
             }
         }
-
         if (fileInput) {
             fileInput.addEventListener('change', function() {
                 if (fileChosenFeedback) {
@@ -194,33 +357,28 @@
                     }
                 }
                 updateSendButtonState();
+                // Note: File sending via WebSocket is not implemented in this pass.
+                // If a file is selected, the send button might enable, but `sendMessage` currently only sends text.
             });
         }
-
         if (textInput) {
             textInput.addEventListener('input', updateSendButtonState);
-            // Corrected: Event listener for Enter/Shift+Enter should be on textInput
             textInput.addEventListener('keydown', function(event) { 
                 if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault(); 
-                    if (sendButton && !sendButton.disabled) {
-                        sendButton.click(); 
-                    }
+                    if (!sendButton.disabled) { sendMessage(); } // Ensure button is not disabled
                 } 
             });
-
-            // Auto-resize textarea logic
             function autoResizeTextarea() {
                 textInput.style.height = 'auto';
                 let newHeight = textInput.scrollHeight;
-                // Add a small buffer or max-height to prevent infinite growth if desired
-                // For now, just set to scrollHeight. Consider a max-height CSS rule too.
                 textInput.style.height = newHeight + 'px';
             }
             textInput.addEventListener('input', autoResizeTextarea);
-            autoResizeTextarea(); // Initial call for existing content
+            if(textInput.value) autoResizeTextarea(); // Initial call if there's pre-filled text
+            else textInput.style.height = 'auto'; // Ensure it starts small if empty
         }
-        updateSendButtonState(); // Initial state for the send button
+        updateSendButtonState();
     });
 </script>
 {% endblock %} 

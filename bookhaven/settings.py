@@ -32,8 +32,17 @@ SECRET_KEY = 'django-insecure-^ld@3p$tdzxs0m87^09i1ak#x3jifri8+ap881zg6jbuyxtuse
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # Allow all hosts for development convenience
+CSRF_TRUSTED_ORIGINS = [
+    'https://h35f8r9h-5000.inc1.devtunnels.ms',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000', # Also good to include this variant
+]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_SSL_REDIRECT = False # Ensure Django doesn't try to redirect since proxy handles SSL
 
 # Application definition
 

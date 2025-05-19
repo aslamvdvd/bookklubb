@@ -64,3 +64,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    def get_full_name(self):
+        """Return the first_name plus the last_name, with a space in between, including middle_name if present."""
+        parts = [self.first_name, self.middle_name, self.last_name]
+        full_name = " ".join(part for part in parts if part)
+        return full_name.strip()
+
+    def get_short_name(self):
+        """Return the short name for the user (usually first name)."""
+        return self.first_name

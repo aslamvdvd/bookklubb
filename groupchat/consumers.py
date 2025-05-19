@@ -42,46 +42,61 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message_text = text_data_json.get('message')
-        # file_data = text_data_json.get('file') # Handling file uploads via WebSocket is more complex
+        temp_id = text_data_json.get('temp_id') # Get temp_id from client
 
         if not message_text:
+            # Optionally send an error if message is empty but temp_id was provided
             return
 
         # Save message to database
         chat_message = await self.save_message(self.user, self.group_id, message_text)
-        if not chat_message: # Handle case where message saving failed (e.g. group not found)
-            # Optionally send an error back to the client
+        if not chat_message:
+            # Handle message saving failure - potentially send error back to client using temp_id
+            if temp_id:
+                await self.send(text_data=json.dumps({
+                    'type': 'message.error',
+                    'temp_id': temp_id,
+                    'error': 'Message could not be saved.'
+                }))
             return
 
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat.message', # Convention: type of event
+                'type': 'chat.message', 
                 'message_id': chat_message.id,
+                'temp_id': temp_id, # Include temp_id in broadcast
                 'user_id': self.user.id,
-                'username': self.user.username, # Or get_full_name()
+                'username': self.user.username,
                 'user_full_name': await self.get_user_full_name(self.user),
                 'text': chat_message.text_content,
                 'timestamp': chat_message.timestamp.isoformat(),
-                # 'file_url': chat_message.file_attachment.url if chat_message.file_attachment else None,
-                # 'file_name': chat_message.file_attachment.name.split('/')[-1] if chat_message.file_attachment else None,
             }
         )
 
     # Handler for messages broadcasted to the room group (e.g., from receive method)
     async def chat_message(self, event):
-        # Send message data to WebSocket client
+        # This method sends the broadcasted message to the client
         await self.send(text_data=json.dumps({
             'id': event['message_id'],
+            'temp_id': event.get('temp_id'), # Include temp_id if present
             'user_id': event['user_id'],
             'username': event['username'],
             'user_full_name': event['user_full_name'],
             'text': event['text'],
             'timestamp': event['timestamp'],
-            # 'file_url': event['file_url'],
-            # 'file_name': event['file_name'],
+            # Indicate this is a standard message broadcast
+            'message_type': 'new_message' 
         }))
+
+    # Future: Handler for specific message error events if needed
+    # async def message_error(self, event):
+    #     await self.send(text_data=json.dumps({
+    #         'type': 'message.error',
+    #         'temp_id': event['temp_id'],
+    #         'error': event['error'],
+    #     }))
 
     @database_sync_to_async
     def is_user_member(self, user, group_id):
