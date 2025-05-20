@@ -1,3 +1,10 @@
+"""
+Views for the group chat application.
+
+This module contains views for rendering the chat interface,
+handling message submissions, and managing user interactions
+within group chats.
+"""
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse # JsonResponse for potential AJAX later

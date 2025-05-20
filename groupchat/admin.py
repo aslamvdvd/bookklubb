@@ -1,3 +1,9 @@
+"""
+Admin configurations for the group chat application.
+
+This module defines how models from the group chat app, such as
+GroupChatMessage, are displayed and managed in the Django admin interface.
+"""
 from django.contrib import admin
 from .models import GroupChatMessage
 

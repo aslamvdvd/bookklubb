@@ -1,3 +1,9 @@
+"""
+Custom template tags and filters for the groupchat application.
+
+This module provides custom tags and filters to be used within
+Django templates related to the groupchat app.
+"""
 import os
 from django import template
 

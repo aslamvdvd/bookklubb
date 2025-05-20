@@ -1,3 +1,9 @@
+"""
+Forms for the group chat application.
+
+This module defines forms used for creating and validating
+chat messages within discussion groups.
+"""
 from django import forms
 from .models import GroupChatMessage
 

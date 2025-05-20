@@ -1,3 +1,10 @@
+"""
+WebSocket consumers for the group chat application.
+
+This module handles WebSocket connections, message broadcasting, and real-time
+communication for group chats. It integrates with Django Channels for asynchronous
+operations and database access.
+"""
 import json
 import logging # Import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -10,7 +17,21 @@ User = get_user_model()
 logger = logging.getLogger(__name__) # Get a logger instance
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    """
+    A WebSocket consumer that handles real-time chat functionalities for a specific group.
+
+    Connects users to a group chat room, validates their membership, receives messages
+    from clients, saves them to the database, and broadcasts them to all members
+    of the group.
+    """
     async def connect(self):
+        """
+        Handles a new WebSocket connection.
+
+        Authenticates the user, checks for group membership, and if successful,
+        adds the connection to the appropriate channel layer group and accepts
+        the WebSocket connection.
+        """
         self.group_id = self.scope['url_route']['kwargs']['group_id']
         self.room_group_name = f'chat_{self.group_id}'
         self.user = self.scope['user']
@@ -45,6 +66,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         logger.error(f"ERROR_LOG: Connect Step 7 - After accept. User {self.user}, Group {self.group_id}")
 
     async def disconnect(self, close_code):
+        """
+        Handles a WebSocket disconnection.
+
+        Removes the connection from the channel layer group.
+
+        Args:
+            close_code: The code indicating the reason for disconnection.
+        """
         logger.error(f"ERROR_LOG: Disconnect called. User {self.user}, Group {self.group_id}, Code: {close_code}") # Add error log here
         logger.info(f"User {self.user} disconnecting from group {self.group_id} with code: {close_code}")
         if hasattr(self, 'room_group_name') and hasattr(self, 'channel_name'):
@@ -55,6 +84,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         logger.info(f"User {self.user} removed from channel layer for group {self.group_id}.")
 
     async def receive(self, text_data):
+        """
+        Handles incoming messages from a WebSocket connection.
+
+        Parses the message (expected to be JSON), validates its content,
+        saves it to the database, and then broadcasts it to the channel layer group.
+        If an error occurs during processing (e.g., invalid JSON, save failure),
+        an error message may be sent back to the originating client.
+
+        Args:
+            text_data (str): The raw message data received from the WebSocket,
+                             expected to be a JSON string containing 'message' and 'temp_id'.
+        """
         logger.info(f"Received message from user {self.user} in group {self.group_id}: {text_data}")
         try:
             text_data_json = json.loads(text_data)
@@ -109,6 +150,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }))
 
     async def chat_message(self, event):
+        """
+        Sends a chat message event (received from the channel layer group)
+        to the WebSocket client.
+
+        This method is typically called by the channel layer after a message
+        is broadcast using `group_send`.
+
+        Args:
+            event (dict): A dictionary containing the message details to be sent,
+                          including 'message_id', 'user_id', 'username',
+                          'user_full_name', 'text', 'timestamp', and optionally 'temp_id'.
+        """
         logger.info(f"Sending chat_message event to client {self.channel_name} in group {self.group_id}: {event}")
         await self.send(text_data=json.dumps({
             'id': event['message_id'],
@@ -132,6 +185,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_user_member(self, user, group_id):
+        """
+        Checks if a given user is a member of the specified discussion group.
+
+        This method performs a synchronous database query in an asynchronous context.
+
+        Args:
+            user (User): The user instance to check.
+            group_id (int or str): The ID of the discussion group.
+
+        Returns:
+            bool: True if the user is a member, False otherwise.
+        """
         logger.info(f"Checking membership for user {user.id} in group {group_id}")
         try:
             group = DiscussionGroup.objects.get(id=group_id)
@@ -147,6 +212,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, user, group_id, message_text):
+        """
+        Saves a new chat message to the database.
+
+        This method performs a synchronous database query in an asynchronous context.
+
+        Args:
+            user (User): The user who sent the message.
+            group_id (int or str): The ID of the group where the message was sent.
+            message_text (str): The textual content of the message.
+
+        Returns:
+            GroupChatMessage or None: The created GroupChatMessage instance if successful,
+                                      None otherwise (e.g., if the group doesn't exist).
+        """
         logger.info(f"DB: Attempting to save message by user {user.id} in group {group_id}: '{message_text[:50]}...'")
         try:
             group = DiscussionGroup.objects.get(id=group_id)
@@ -166,6 +245,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     @database_sync_to_async
     def get_user_full_name(self, user):
+        """
+        Retrieves the full name of a user, falling back to their username.
+
+        This method performs a synchronous database query (potentially, depending
+        on how `user.get_full_name()` is implemented) in an asynchronous context.
+
+        Args:
+            user (User): The user instance.
+
+        Returns:
+            str: The user's full name if available, otherwise their username.
+        """
         logger.info(f"DB: Getting full name for user {user.id}")
         try:
             name = user.get_full_name() or user.username

@@ -1,3 +1,8 @@
+"""
+URLS patterns for the group chat application.
+
+This module maps URLs to their corresponding views within the groupchat app.
+"""
 from django.urls import path
 from . import views
 

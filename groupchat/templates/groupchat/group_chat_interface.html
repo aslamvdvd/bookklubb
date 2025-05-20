@@ -291,6 +291,12 @@
 
         let messageQueue = []; // For Task 2 & 3: Buffer messages sent while offline
 
+        /**
+         * Displays a floating, auto-disappearing banner for connection status or errors.
+         * @param {string} message - The message to display in the banner.
+         * @param {'error'|'info'|'success'} [type='error'] - The type of banner, affecting its style.
+         * @param {number} [duration=2500] - How long the banner should be visible in milliseconds.
+         */
         function displayConnectionError(message, type = 'error', duration = 2500) { // Default duration 2.5s
             let container = document.getElementById('connection-error-container');
             if (!container) {
@@ -322,6 +328,11 @@
             }, duration);
         }
 
+        /**
+         * Marks all currently pending (status 'sending') messages in the UI as 'failed'.
+         * Typically called when a connection is definitively lost and messages in transit are unlikely to succeed.
+         * @param {string} [reason='Connection lost'] - The reason to display for the failure.
+         */
         function markPendingMessagesAsFailed(reason = 'Connection lost') {
             const pendingMessages = messageListWrapper.querySelectorAll('.message-bubble[data-temp-id^="temp_"] .message-status.status-sending');
             pendingMessages.forEach(statusIndicator => {
@@ -332,6 +343,12 @@
             });
         }
 
+        /**
+         * Updates the visual status indicator of a message bubble in the chat UI.
+         * @param {HTMLElement} messageElement - The message bubble's DOM element.
+         * @param {'sending'|'sent'|'failed'} status - The new status to display.
+         * @param {string} [errorText=''] - Optional text to display next to a 'failed' status.
+         */
         function updateMessageStatus(messageElement, status, errorText = '') {
             let statusIndicator = messageElement.querySelector('.message-status');
             if (!statusIndicator) {
@@ -352,6 +369,17 @@
             }
         }
 
+        /**
+         * Appends a new message to the chat interface and scrolls to the bottom.
+         * @param {object} data - The message data object.
+         * @param {string} data.text - The text content of the message.
+         * @param {string} data.user_full_name - The full name of the sender.
+         * @param {string} data.timestamp - ISO string representation of the message timestamp.
+         * @param {string} [data.temp_id] - Temporary client-side ID for optimistic updates.
+         * @param {string|number} [data.id] - Server-side ID of the message, if available.
+         * @param {boolean} isOwnMessage - True if the message is from the current user, false otherwise.
+         * @param {'sending'|'sent'|'received'} [status='sent'] - The initial status for display (mainly for own messages).
+         */
         function appendMessageToChat(data, isOwnMessage, status = 'sent') {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message-bubble');
@@ -394,6 +422,11 @@
             }, 0); // setTimeout 0 can help break execution chain
         }
 
+        /**
+         * Handles sending a new message from the text input.
+         * If the WebSocket is connected, it sends the message directly.
+         * If disconnected, it queues the message for later sending and updates the UI optimistically.
+         */
         function sendMessage() {
             const messageText = textInput.value.trim();
             // File sending logic is not implemented in this pass, but we check if a file is selected for button state.
@@ -451,6 +484,10 @@
         }
 
         if (chatForm) { chatForm.addEventListener('submit', function(event) { event.preventDefault(); sendMessage(); }); }
+        /**
+         * Updates the enabled/disabled state of the send button based on whether
+         * there is text in the input field or a file selected.
+         */
         function updateSendButtonState() {
             const textValue = textInput ? textInput.value.trim() : '';
             const fileSelected = fileInput ? fileInput.files.length > 0 : false;
@@ -480,6 +517,9 @@
                     if (!sendButton.disabled) { sendMessage(); } // Ensure button is not disabled
                 } 
             });
+            /**
+             * Automatically resizes the textarea height based on its content.
+             */
             function autoResizeTextarea() {
                 textInput.style.height = 'auto';
                 let newHeight = textInput.scrollHeight;
@@ -495,6 +535,10 @@
         const maxReconnectAttempts = 10;
         const reconnectInterval = 3000; // 3 seconds, increase for backoff
 
+        /**
+         * Attempts to reconnect the WebSocket if it's closed, with exponential backoff.
+         * Displays user feedback about reconnection attempts.
+         */
         function attemptReconnect() {
             if (reconnectAttempts >= maxReconnectAttempts) {
                 // console.error('Max reconnect attempts reached. Giving up.');
@@ -518,12 +562,14 @@
                 } else if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
                     // console.log('Reconnect unnecessary, already connected.');
                     reconnectAttempts = 0; // Reset on successful connection
-                     const currentErrorDiv = document.querySelector('.connection-error-banner'); // This class is not used, should be #connection-error-container or .connection-error-banner-item
-                     if (currentErrorDiv) currentErrorDiv.remove(); // This logic might not be effective as intended, displayConnectionError handles removal
                 }
             }, reconnectInterval * Math.pow(2, Math.min(reconnectAttempts -1, 4))); // Exponential backoff up to a point
         }
 
+        /**
+         * Sets up and initializes the WebSocket connection, including its event handlers (onopen, onmessage, onclose, onerror).
+         * Closes any existing WebSocket connection before creating a new one.
+         */
         function setupWebSocket() {
             // Close existing socket if it exists and is not already closed
             if (chatSocket && chatSocket.readyState !== WebSocket.CLOSED && chatSocket.readyState !== WebSocket.CLOSING) {
@@ -627,6 +673,10 @@
         
         setupWebSocket(); // Initial call
 
+        /**
+         * Processes and sends messages from the `messageQueue` one by one when the WebSocket is open.
+         * Uses a short delay between sending queued messages to avoid overwhelming the connection.
+         */
         function processMessageQueue() {
             if (chatSocket && chatSocket.readyState === WebSocket.OPEN && messageQueue.length > 0) {
                 const queuedMsgData = messageQueue.shift(); // Get and remove from front

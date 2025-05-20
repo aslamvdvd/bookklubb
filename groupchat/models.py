@@ -1,3 +1,9 @@
+"""
+Models for the group chat application.
+
+This module defines the data structures used for storing and managing
+real-time chat messages within discussion groups.
+"""
 from django.conf import settings
 from django.db import models
 from discussions.models import DiscussionGroup # Assuming DiscussionGroup is in discussions.models
