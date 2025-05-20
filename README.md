@@ -1,4 +1,4 @@
-# BookHaven: Your Digital Content and Community Hub
+# BookHaven or Talktor: Your Digital Content and Community Hub
 
 BookHaven is a comprehensive Django-based web platform designed to bring together content enthusiasts. It offers a space for users to discover, share, and discuss various media types, participate in user-led discussion groups, and manage their digital literary life.
 

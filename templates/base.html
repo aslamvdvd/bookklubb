@@ -23,33 +23,38 @@
 
     {% block head_extra %}{% endblock %}
 </head>
-<body class="{% block body_class %}bg-gray-50 text-gray-800 flex flex-col min-h-screen transition-colors duration-300{% endblock %}">
+<body class="{% block body_class %}bg-gray-50 text-gray-800 transition-colors duration-300{% endblock %}">
 
-    {% if messages %}
-    <div class="django-messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% block body_content %}
-        {% block header %}
-            {% include "dashboard/partials/dashboard_header.html" %}
-        {% endblock %}
-        
-        <main class="flex-grow {% block main_class %}{% endblock %}">
-            {% block content %}{% endblock %}
-        </main>
-
-        {% block footer %}
-        <footer class="py-6 bg-white text-center text-gray-600 {% block footer_class %}{% endblock %} transition-colors duration-300">
-            © {% now "Y" %} {{ platform_name|default:"BookHaven" }}. All rights reserved.
-        </footer>
-        {% endblock %}
+    {% block site_header %}
+        {# The fixed main site header is rendered first #}
+        {% include "dashboard/partials/dashboard_header.html" %}
     {% endblock %}
+
+    {# This wrapper handles the padding for the fixed header and contains all other body content #}
+    <div class="pt-[60px] lg:pt-[88px] flex flex-col min-h-screen">
+        {% if messages %}
+        <div class="django-messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block body_content_wrapper %}
+            {# body_content block from original structure is effectively replaced by this new structure #}
+            <main class="flex-grow {% block main_class %}{% endblock %}">
+                {% block content %}{% endblock %}
+            </main>
+
+            {% block footer %}
+            <footer class="py-6 bg-white text-center text-gray-600 {% block footer_class %}{% endblock %} transition-colors duration-300">
+                © {% now "Y" %} {{ platform_name|default:"BookHaven" }}. All rights reserved.
+            </footer>
+            {% endblock %}
+        {% endblock %}
+    </div>
 
     <!-- Search Modal (Global) -->
     <div id="searchModal" class="modal-hidden fixed inset-0 z-[100] flex items-start justify-center p-4 pt-16 md:pt-24 modal-backdrop opacity-0 pointer-events-none">
