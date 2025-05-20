@@ -275,7 +275,7 @@
             // Use a short timeout to ensure all initial elements are rendered and heights calculated
             setTimeout(() => {
                 messageListWrapper.scrollTop = messageListWrapper.scrollHeight;
-                console.log('Initial scroll to bottom executed.');
+                // console.log('Initial scroll to bottom executed.');
             }, 100); // 100ms delay, adjust if needed
         }
         if (textInput) {
@@ -437,7 +437,7 @@
                         }));
                     } else {
                         // If socket closed in this tiny interval, re-queue or handle as error
-                        console.warn('Socket closed between optimistic append and send. Message not sent directly, should be in queue if re-queue logic was added here.');
+                        // console.warn('Socket closed between optimistic append and send. Message not sent directly, should be in queue if re-queue logic was added here.');
                         // Potentially re-add to messageQueue here if it wasn't already handled by a disconnect event
                         // For now, rely on original queuing logic if disconnected earlier.
                     }
@@ -497,29 +497,29 @@
 
         function attemptReconnect() {
             if (reconnectAttempts >= maxReconnectAttempts) {
-                console.error('Max reconnect attempts reached. Giving up.');
+                // console.error('Max reconnect attempts reached. Giving up.');
                 displayConnectionError('Failed to reconnect. Please refresh manually.', 'error', 5000);
                 return;
             }
             reconnectAttempts++;
             const msg = `Connection lost. Reconnecting... (Attempt ${reconnectAttempts} of ${maxReconnectAttempts})`;
-            console.log(msg);
+            // console.log(msg);
             displayConnectionError(msg, 'info', reconnectInterval * Math.pow(2, Math.min(reconnectAttempts -1, 4)) - 500 ); // Show for nearly reconnect duration
 
             setTimeout(() => {
                 // Ensure we are not trying to reconnect if already open or connecting
                 if (chatSocket && (chatSocket.readyState === WebSocket.CLOSED || chatSocket.readyState === WebSocket.CLOSING)) {
-                    console.log('Re-initiating WebSocket connection.');
+                    // console.log('Re-initiating WebSocket connection.');
                     // Re-initialize the WebSocket object. 
                     // This implicitly tries to connect. Event handlers are already attached to the chatSocket variable.
                     // No, this is wrong. We need to create a NEW WebSocket object and reassign event handlers.
                     // Or better, a function that sets up the socket and its handlers.
                     setupWebSocket(); // We'll refactor socket creation into this function
                 } else if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-                    console.log('Reconnect unnecessary, already connected.');
+                    // console.log('Reconnect unnecessary, already connected.');
                     reconnectAttempts = 0; // Reset on successful connection
-                     const currentErrorDiv = document.querySelector('.connection-error-banner');
-                     if (currentErrorDiv) currentErrorDiv.remove();
+                     const currentErrorDiv = document.querySelector('.connection-error-banner'); // This class is not used, should be #connection-error-container or .connection-error-banner-item
+                     if (currentErrorDiv) currentErrorDiv.remove(); // This logic might not be effective as intended, displayConnectionError handles removal
                 }
             }, reconnectInterval * Math.pow(2, Math.min(reconnectAttempts -1, 4))); // Exponential backoff up to a point
         }
@@ -527,7 +527,7 @@
         function setupWebSocket() {
             // Close existing socket if it exists and is not already closed
             if (chatSocket && chatSocket.readyState !== WebSocket.CLOSED && chatSocket.readyState !== WebSocket.CLOSING) {
-                console.log('Closing existing WebSocket before creating a new one.');
+                // console.log('Closing existing WebSocket before creating a new one.');
                 chatSocket.onopen = null; 
                 chatSocket.onmessage = null;
                 chatSocket.onerror = null;
@@ -540,13 +540,13 @@
                 currentChatSocketProtocol = 'wss';
             }
 
-            console.log('Attempting to establish new WebSocket connection...');
+            // console.log('Attempting to establish new WebSocket connection...');
             chatSocket = new WebSocket( 
                 currentChatSocketProtocol + '://' + window.location.host + '/ws/chat/' + groupId + '/'
             );
 
             chatSocket.onopen = function(e) {
-                console.log('Chat socket successfully connected (onopen).');
+                // console.log('Chat socket successfully connected (onopen).');
                 reconnectAttempts = 0; 
                 displayConnectionError('Connected to chat', 'success', 1500);
                 updateSendButtonState();
@@ -554,19 +554,19 @@
             };
 
             chatSocket.onmessage = function(e) {
-                console.log("Client received raw data:", e.data); // Log raw data
+                // console.log("Client received raw data:", e.data); // Log raw data
                 try {
                     const data = JSON.parse(e.data);
-                    console.log("Client parsed data:", data);
+                    // console.log("Client parsed data:", data);
 
                     const messageType = data.message_type || (data.type === 'message.error' ? 'message.error' : 'new_message');
-                    console.log("Client determined messageType:", messageType);
+                    // console.log("Client determined messageType:", messageType);
 
                     const initialMessagePlaceholder = messageListWrapper.querySelector('.initial-chat-message');
                     if (initialMessagePlaceholder) { initialMessagePlaceholder.remove(); }
 
                     if (messageType === 'message.error' && data.temp_id) {
-                        console.log("Client handling message.error for temp_id:", data.temp_id, "Error:", data.error);
+                        // console.log("Client handling message.error for temp_id:", data.temp_id, "Error:", data.error);
                         const failedMsgElement = messageListWrapper.querySelector(`[data-temp-id="${data.temp_id}"]`);
                         if (failedMsgElement) {
                             updateMessageStatus(failedMsgElement, 'failed', data.error);
@@ -577,7 +577,7 @@
                         }
                     } else if (messageType === 'new_message') {
                         const isOwnEcho = data.temp_id && data.user_id.toString() === currentUserId;
-                        console.log(`Client handling new_message. TempID: ${data.temp_id || 'N/A'}. User ID match (is own echo): ${isOwnEcho}. Server Message ID: ${data.id}`);
+                        // console.log(`Client handling new_message. TempID: ${data.temp_id || 'N/A'}. User ID match (is own echo): ${isOwnEcho}. Server Message ID: ${data.id}`);
 
                         const qIndex = messageQueue.findIndex(qMsg => qMsg.temp_id === data.temp_id);
                         if (qIndex > -1) {
@@ -592,35 +592,35 @@
                                     updateMessageStatus(pendingMsgElement, 'sent');
                                 }, 50); // Introduce a 50ms delay before updating status for own message
                             } else {
-                                console.warn("Client received its own message but no matching temp_id element found. Appending as new.", data);
+                                // console.warn("Client received its own message but no matching temp_id element found. Appending as new.", data);
                                 appendMessageToChat(data, true, 'sent'); 
                             }
                         } else if (data.user_id.toString() !== currentUserId) {
                             appendMessageToChat(data, false, 'received'); // 'received' status isn't formally used for display on other's messages
                         }
                     } else {
-                        console.warn("Client received unhandled message type or structure:", data);
+                        // console.warn("Client received unhandled message type or structure:", data);
                     }
                 } catch (error) {
-                    console.error("Error in chatSocket.onmessage:", error);
-                    console.error("Raw data was:", e.data); // Log raw data again on error
+                    // console.error("Error in chatSocket.onmessage:", error);
+                    // console.error("Raw data was:", e.data); // Log raw data again on error
                     // Consider if a critical error here should attempt a graceful socket close or notify user
                 }
             };
 
             chatSocket.onclose = function(e) {
-                console.error('Chat socket closed (onclose). Code:', e.code, 'Reason:', e.reason, 'Clean exit:', e.wasClean);
+                // console.error('Chat socket closed (onclose). Code:', e.code, 'Reason:', e.reason, 'Clean exit:', e.wasClean);
                 if (e.code !== 1000 && e.code !== 1001) { 
                     // displayConnectionError is now handled by attemptReconnect for ongoing feedback
                     attemptReconnect();
                 } else {
-                    console.log('WebSocket closed cleanly.');
+                    // console.log('WebSocket closed cleanly.');
                     // displayConnectionError('Chat session ended.', 'info'); // Optional for clean close
                 }
             };
 
             chatSocket.onerror = function(err) {
-                console.error('WebSocket Error (onerror): ', err);
+                // console.error('WebSocket Error (onerror): ', err);
                 // displayConnectionError('A connection error occurred.', 'error'); // onclose will usually follow and trigger reconnect visuals
             };
         }
@@ -635,13 +635,13 @@
                     'message': queuedMsgData.message,
                     'temp_id': queuedMsgData.temp_id 
                 }));
-                console.log('Sent queued message:', queuedMsgData.temp_id, 'Remaining in queue:', messageQueue.length);
+                // console.log('Sent queued message:', queuedMsgData.temp_id, 'Remaining in queue:', messageQueue.length);
                 
                 if (messageQueue.length > 0) {
                     setTimeout(processMessageQueue, 200); // Send next message after 200ms
                 }
             } else if (messageQueue.length > 0) {
-                console.log('Cannot process message queue now: WebSocket not open or queue empty. Will retry if onopen is called.');
+                // console.log('Cannot process message queue now: WebSocket not open or queue empty. Will retry if onopen is called.');
             } else {
                 // console.log('Message queue is empty.');
             }
