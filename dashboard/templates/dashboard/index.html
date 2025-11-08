@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | {{ request.user.first_name|default:request.user.username }} | {{ platform_name|default:"BookHaven" }}{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_styles.css' %}">
+    {# Add any dashboard specific CSS here if needed later #}
+{% endblock %}
+
+{% block header %}
+    {% include "dashboard/partials/dashboard_header.html" %}
+{% endblock %}
+
+{% block body_class %}bg-gray-100 text-gray-800 flex flex-col min-h-screen{% endblock %}
+
+{% block content %}
+<div class="flex-grow container mx-auto px-4 py-8">
+
+    <!-- Hero/Welcome Section -->
+    <section class="text-center py-12 mb-12 bg-white shadow-xl rounded-lg transition-colors duration-300">
+        {# Gradient text might be tricky for dark mode; consider alternative or ensure contrast #}
+        {# For now, assuming gradient handles itself or is acceptable #}
+        <h1 class="text-5xl font-bold mb-4 gradient-text bg-gradient-purple-pink">
+            Welcome to {{ platform_name|default:"BookHaven" }}, {{ request.user.first_name|default:request.user.username }}!
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            This is your personal space on {{ platform_name|default:"BookHaven" }}. Dive into discussions, discover new content, and connect with fellow enthusiasts.
+        </p>
+    </section>
+
+    <!-- Discussion Groups Section -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-semibold mb-8 text-center text-gray-700">Engage in Discussions</h2>
+        <div class="grid md:grid-cols-2 gap-8 items-start">
+            <!-- Search Discussions Trigger Card -->
+            <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col items-center">
+                <h3 class="text-2xl font-bold text-indigo-600 mb-4">Find Your Community</h3>
+                <p class="text-gray-600 mb-6 text-center">Explore existing discussion groups and join conversations that matter to you.</p>
+                <button id="openSearchModalBtnContent" class="w-full max-w-xs bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 ease-in-out flex items-center justify-center space-x-2 search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Search Discussion Groups</span>
+                </button>
+            </div>
+
+            <!-- Create Group Card -->
+            <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col items-center">
+                <h3 class="text-2xl font-bold text-pink-500 mb-4">Start a New Conversation</h3>
+                <p class="text-gray-600 mb-6 text-center">Have an idea for a new group? Bring your community together by creating one.</p>
+                <a href="{% url 'discussions:create_group' %}" class="w-full max-w-xs inline-block bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-center">
+                    Create a Discussion Group
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- User's Groups Display Section -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-semibold mb-8 text-center text-gray-700">Your Discussion Groups</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Groups Created by User Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-indigo-600 mb-4">Groups You've Created</h3>
+                {% if created_groups %}
+                    <ul class="space-y-3">
+                        {% for group in created_groups %}
+                            <li class="p-3 bg-indigo-50 rounded-md hover:bg-indigo-100 transition">
+                                <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="font-semibold text-indigo-700 hover:text-indigo-800">{{ group.name }}</a>
+                                {% if group.description %}
+                                    <p class="text-sm text-gray-600 truncate">{{ group.description|truncatewords:15 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 mt-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-600">You haven't created any groups yet. Why not <a href="{% url 'discussions:create_group' %}" class="text-indigo-600 hover:underline">start one</a>?</p>
+                {% endif %}
+            </div>
+
+            <!-- Groups Joined by User Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-pink-500 mb-4">Other Groups You've Joined</h3>
+                {% if joined_groups_not_created_by_user %}
+                    <ul class="space-y-3">
+                        {% for group in joined_groups_not_created_by_user %}
+                            <li class="p-3 bg-pink-50 rounded-md hover:bg-pink-100 transition">
+                                <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="font-semibold text-pink-700 hover:text-pink-800">{{ group.name }}</a>
+                                {% if group.description %}
+                                    <p class="text-sm text-gray-600 truncate">{{ group.description|truncatewords:15 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 mt-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-600">You haven't joined any other groups yet. Explore and <a href="{% url 'search_hub:discussion_search_results' %}" class="text-pink-600 hover:underline">find some</a>!</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Features Overview Section -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-semibold mb-8 text-center text-gray-700">What Else Can You Do?</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Card 1: Discover Content -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 text-indigo-600 mb-4 mx-auto transition-colors duration-300">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m0 0a8.485 8.485 0 0011.998 0M12 17.747a8.485 8.485 0 01-11.998 0M12 17.747L12 6.253z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253A8.485 8.485 0 00.002 6.253m11.998 0A8.485 8.485 0 0123.998 6.253M12 6.253v11.494"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17.747a8.485 8.485 0 0011.998 0M12 17.747a8.485 8.485 0 01-11.998 0"></path><path d="M12 21a8.5 8.5 0 100-17 8.5 8.5 0 000 17zM12 3C6.48 3 2 7.48 2 13s4.48 10 10 10 10-4.48 10-10S17.52 3 12 3z"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-center text-indigo-700 mb-2">Explore Vast Content</h3>
+                <p class="text-gray-600 text-center text-sm">Dive into a rich library of books, articles, and user-generated content across various genres.</p>
+            </div>
+            <!-- Card 2: Your Activity -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-pink-100 text-pink-500 mb-4 mx-auto transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-center text-pink-600 mb-2">Track Your Journey</h3>
+                <p class="text-gray-600 text-center text-sm">Keep an eye on your contributions, discussions you've joined, and content you've explored.</p>
+            </div>
+            <!-- Card 3: Personalize -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-500 mb-4 mx-auto transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-center text-green-600 mb-2">Customize Your Profile</h3>
+                <p class="text-gray-600 text-center text-sm">Make your profile your own, share your interests, and manage your settings.</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    {# <script src="{% static 'dashboard/js/dashboard_search_modal.js' %}"></script> #}
+    {# Add any dashboard specific JS here if needed later #}
+{% endblock %} 

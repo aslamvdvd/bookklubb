@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse
 from django.conf import settings
 from datetime import datetime
+from accounts.forms import CustomUserCreationForm
+from django.urls import reverse
+from django.contrib import messages
 
 # Create your views here.
 
@@ -13,19 +16,58 @@ def index(request):
         'platform_name': settings.PLATFORM_NAME,
         'platform_first_name': settings.PLATFORM_FIRST_NAME,
         'platform_last_name': settings.PLATFORM_LAST_NAME,
-        'current_date': datetime.now().year
+        'current_year': datetime.now().year
     }
     return render(request, 'homepage/index.html', context)
 
 
-
-def signup(request):
+def login_view(request):
+    context = {
+        'current_year': datetime.now().year,
+        'platform_name': settings.PLATFORM_NAME,
+        'form_type': 'login'
+    }
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect(reverse('dashboard:index', kwargs={'username': user.username}))
+            else:
+                context['error_message'] = 'Invalid username or password.'
+        else:
+            context['error_message'] = 'Invalid username or password.'
+        context['form'] = form
+    else:
+        form = AuthenticationForm()
+        context['form'] = form
+    return render(request, 'homepage/auth.html', context)
+
+
+def signup_view(request):
+    context = {
+        'current_year': datetime.now().year,
+        'platform_name': settings.PLATFORM_NAME,
+        'form_type': 'signup'
+    }
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('/')
+            return redirect(reverse('dashboard:index', kwargs={'username': user.username}))
+        else:
+            context['form'] = form
     else:
-        form = UserCreationForm()
-    return render(request, 'homepage/signup.html', {'form': form})
+        form = CustomUserCreationForm()
+        context['form'] = form
+    return render(request, 'homepage/auth.html', context)
+
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "You have successfully logged out. Please do come again.")
+    return redirect(reverse('homepage:index'))

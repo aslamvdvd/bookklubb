@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if form_type == "login" %}Login{% else %}Sign Up{% endif %} | {{ platform_name|default:"BookHaven" }}
+{% endblock %}
+
+{% block body_class %}bg-gray-100 flex flex-col items-center justify-center min-h-screen{% endblock %}
+
+{% block main_class %}pt-20 pb-10{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md p-8 space-y-8 bg-white shadow-xl rounded-xl">
+    <div class="text-center">
+        <h2 class="text-3xl font-extrabold text-gray-900">
+            {% if form_type == "login" %}
+                Sign in to your account
+            {% else %}
+                Create a new account
+            {% endif %}
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">
+            Or {% if form_type == "login" %}
+                <a href="{% url 'signup' %}" class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+                    sign up for a new account
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+                    already have an account? Sign in
+                </a>
+            {% endif %}
+        </p>
+    </div>
+
+    {% if messages %}
+        <div class="rounded-md bg-red-50 p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <!-- Heroicon name: solid/x-circle -->
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">
+                        There {% if messages|length > 1 %}were {{ messages|length }} errors{% else %}was 1 error{% endif %} with your submission:
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <ul role="list" class="list-disc pl-5 space-y-1">
+                            {% for message in messages %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <form class="mt-8 space-y-6" method="POST" autocomplete="off">
+        {% csrf_token %}
+        <div class="rounded-md shadow-sm -space-y-px">
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="sr-only">{{ field.label }}</label>
+                    <input id="{{ field.id_for_label }}" name="{{ field.name }}" type="{{ field.field.widget.input_type }}"
+                           value="{{ field.value|default_if_none:'' }}"
+                           {% if field.field.required %}required{% endif %}
+                           class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm 
+                                  {% if forloop.first and not forloop.last %}rounded-t-md{% elif forloop.last and not forloop.first %}rounded-b-md{% elif not forloop.first and not forloop.last %}rounded-none{% else %}rounded-md{% endif %}"
+                           placeholder="{{ field.label }}">
+                    {% if field.errors %}
+                        <p class="text-xs text-red-600 mt-1 ml-1">{{ field.errors|first }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if form_type == "login" %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                <label for="remember-me" class="ml-2 block text-sm text-gray-900"> Remember me </label>
+            </div>
+
+            <div class="text-sm">
+                <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline"> Forgot your password? </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div>
+            <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150 ease-in-out">
+                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400 transition-colors duration-150 ease-in-out" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                {% if form_type == "login" %}
+                    Sign in
+                {% else %}
+                    Create account
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+{% endblock %}

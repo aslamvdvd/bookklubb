@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ page_title|default:"My Discussion Groups" }} | {{ platform_name|default:"BookHaven" }}
+{% endblock %}
+
+{% block header %}
+    {# Re-use the same header block as the main dashboard for consistency #}
+    {% include "dashboard/partials/dashboard_header.html" %}
+{% endblock %}
+
+{% block body_class %}bg-gray-100 text-gray-800 flex flex-col min-h-screen{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-indigo-700">{{ page_title|default:"My Discussion Groups" }}</h1>
+        {% if display_user == request.user %}
+            <p class="text-lg text-gray-600 mt-2">Manage and view all the discussion groups you are part of.</p>
+        {% else %}
+            <p class="text-lg text-gray-600 mt-2">Viewing discussion groups for @{{ display_user.username }}.</p>
+        {% endif %}
+    </header>
+
+    <!-- Groups Created by User -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-semibold mb-6 text-gray-700 border-b pb-3">Groups You've Created</h2>
+        {% if created_groups %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for group in created_groups %}
+                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-2">
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="hover:underline">{{ group.name }}</a>
+                        </h3>
+                        {% if group.description %}
+                            <p class="text-sm text-gray-600 mb-3 min-h-[40px]">{{ group.description|truncatewords_html:20 }}</p>
+                        {% else %}
+                            <p class="text-sm text-gray-500 italic mb-3 min-h-[40px]">No description provided.</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mb-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                        <p class="text-xs text-gray-500">Members: {{ group.members.count }}</p>
+                        <div class="mt-4 text-right">
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="text-sm text-indigo-500 hover:text-indigo-700 font-medium">Open Chat &rarr;</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <p class="text-gray-600">You haven't created any groups yet.
+                    {% if display_user == request.user %}
+                        Why not <a href="{% url 'discussions:create_group' %}" class="text-indigo-600 hover:underline">start one</a>?
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Other Groups Joined by User -->
+    <section>
+        <h2 class="text-3xl font-semibold mb-6 text-gray-700 border-b pb-3">Other Groups You've Joined</h2>
+        {% if joined_groups_not_created_by_user %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for group in joined_groups_not_created_by_user %}
+                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-pink-600 mb-2">
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="hover:underline">{{ group.name }}</a>
+                        </h3>
+                        {% if group.description %}
+                            <p class="text-sm text-gray-600 mb-3 min-h-[40px]">{{ group.description|truncatewords_html:20 }}</p>
+                        {% else %}
+                            <p class="text-sm text-gray-500 italic mb-3 min-h-[40px]">No description provided.</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mb-1">Focus: {{ group.content_item.title|truncatewords:10 }}</p>
+                        <p class="text-xs text-gray-500 mb-1">Created by: @{{ group.creator.username }}</p>
+                        <p class="text-xs text-gray-500">Members: {{ group.members.count }}</p>
+                        <div class="mt-4 text-right">
+                            <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="text-sm text-pink-500 hover:text-pink-700 font-medium">Open Chat &rarr;</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <p class="text-gray-600">You haven't joined any other groups yet.
+                    {% if display_user == request.user %}
+                         Explore and <a href="{% url 'search_hub:discussion_search_results' %}" class="text-pink-600 hover:underline">find some</a>!
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %} 

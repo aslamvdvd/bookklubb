@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %} {# Ensure form_tags is loaded for add_attrs #}
+{% load discussion_tags %} {# Load our new custom tags #}
+
+{% block title %}
+    Search Results {% if query %}- {{ query }}{% endif %} | {{ platform_name|default:"BookHaven" }}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-indigo-700 mb-8 transition-colors duration-300">
+            Discussion Group Search
+        </h1>
+
+        {# Define the full class string for inputs and selects #}
+        {% with common_classes_str="block w-full mt-1 rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-900 bg-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" %}
+        {% with input_specific_classes="form-input" select_specific_classes="form-select" %}
+        <form method="get" action="{% url 'search_hub:discussion_search_results' %}" class="mb-10 bg-white p-6 rounded-lg shadow-md transition-colors duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <!-- Search Query -->
+                <div class="lg:col-span-2">
+                    <label for="{{ form.query.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.query.label }}</label>
+                    {{ form.query|add_attrs:"class:form-input block w-full mt-1 rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-900 bg-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" }} 
+                </div>
+                
+                <!-- Privacy Filter -->
+                <div>
+                    <label for="{{ form.is_private.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.is_private.label }}</label>
+                    {{ form.is_private|add_attrs:"class:form-select block w-full mt-1 rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-900 bg-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" }}
+                </div>
+
+                <!-- Content Type Filter -->
+                <div>
+                    <label for="{{ form.content_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.content_type.label }}</label>
+                    {{ form.content_type|add_attrs:"class:form-select block w-full mt-1 rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-900 bg-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" }}
+                </div>
+
+                <!-- Ordering -->
+                <div>
+                    <label for="{{ form.ordering.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.ordering.label }}</label>
+                    {{ form.ordering|add_attrs:"class:form-select block w-full mt-1 rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-900 bg-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" }}
+                </div>
+
+                <!-- Submit Button -->
+                <div class="lg:col-span-4 flex justify-end mt-4">
+                    <button type="submit" class="w-full md:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-150 ease-in-out">
+                        Apply Filters & Search
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% endwith %}
+        {% endwith %}
+
+        {% if applied_filters.query or results or not applied_filters %} {# Adjusted logic to show initial message correctly #}
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 transition-colors duration-300">
+                {% if applied_filters.query %}
+                    Results for "<span class="text-indigo-600">{{ applied_filters.query }}</span>"
+                {% elif results.count > 0 %}
+                    Displaying All Discussion Groups
+                {% elif not results and applied_filters.query %} {# No results for a specific query #}
+                    No Discussion Groups Found for "<span class="text-indigo-600">{{ applied_filters.query }}</span>"
+                {% elif not results and not applied_filters.query and applied_filters.filters_applied %} {# No results with filters but no query #}
+                    No Discussion Groups Found with Applied Filters
+                {% else %} {# Default state before any search, or if all results are shown without a query #}
+                     All Discussion Groups
+                {% endif %}
+            </h2>
+            
+            {% if results %}
+                <div class="space-y-6">
+                    {% for group in results %}
+                        {% is_member request.user group as user_is_member %} {# Custom template tag needed #}
+                        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out">
+                            <h3 class="text-xl font-bold text-indigo-700 mb-2">
+                                {% if user_is_member %}
+                                    <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="hover:underline"> {{ group.name }}</a>
+                                {% else %}
+                                    {{ group.name }}
+                                {% endif %}
+                            </h3>
+                            {% if group.description %}
+                                <p class="text-gray-600 mb-3 text-sm">{{ group.description|truncatewords:30 }}</p>
+                            {% endif %}
+                            <div class="text-xs text-gray-500 space-y-1">
+                                <p>
+                                    <span class="font-semibold">Creator:</span> 
+                                    {{ group.creator.first_name|default:group.creator.username }} {{ group.creator.last_name|default:'' }}
+                                    (<span class="italic">@{{ group.creator.username }}</span>)
+                                </p>
+                                <p>
+                                    <span class="font-semibold">Focus:</span> 
+                                    <a href="#" class="text-indigo-500 hover:underline">{{ group.content_item.title }}</a> 
+                                    <span class="text-gray-400">({{ group.content_item.get_concrete_model_name|capfirst }})</span>
+                                </p>
+                                <p><span class="font-semibold">Created:</span> {{ group.created_at|date:"d M Y" }}</p>
+                                <p><span class="font-semibold">Privacy:</span> {% if group.is_private %}Private{% else %}Public{% endif %}</p>
+                                <p><span class="font-semibold">Members:</span> {{ group.members.count }}</p>
+                            </div>
+                            <div class="mt-4">
+                                {% if user_is_member %}
+                                    <a href="{% url 'groupchat:group_chat_view' group_id=group.id %}" class="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition">Open Chat &rarr;</a>
+                                {% elif not group.is_private %}
+                                    <a href="{% url 'discussions:join_group' group_id=group.id %}" class="text-sm text-green-600 hover:text-green-800 font-semibold hover:underline transition">Join Group &rarr;</a>
+                                {% else %}
+                                    <span class="text-sm text-gray-500">Private Group</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif applied_filters.filters_applied or applied_filters.query %} {# Show 'no results' only if a search/filter was attempted #}
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-md shadow transition-colors duration-300">
+                    <p class="text-yellow-700">No discussion groups found matching your current search and filter criteria.</p>
+                </div>
+            {% endif %}
+        {% else %} {# Initial state message before any interaction #}
+             <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-md shadow transition-colors duration-300">
+                <p class="text-blue-700">Use the form above to search and filter discussion groups.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
